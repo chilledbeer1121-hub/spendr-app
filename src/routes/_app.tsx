@@ -131,4 +131,3 @@ function BottomNav() {
     </nav>
   );
 }
-// touch
