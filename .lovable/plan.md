@@ -1,32 +1,64 @@
-This is a large spec. I'll build it in focused phases so we can verify each one looks and works right on mobile before moving on. Each phase is shippable on its own.
+# Build plan — 6 features
 
-## Phase 1 — Foundation (this turn)
-- Enable Lovable Cloud (database + auth)
-- Database: `profiles` (name, monthly_salary, currency), `categories`, `expenses` with RLS policies + 13 default categories auto-seeded on signup
-- Auth: email/password + Google sign-in, `/login`, `/signup`, `/reset-password`
-- Design system: dark-mode-first, distinctive (not generic purple). Indian number formatting helper. Salary % shared utility.
-- App shell with mobile bottom nav (Dashboard / Add / Expenses / Reports / Insights) and desktop side rail
-- **Dashboard** (`/`) — header strip, 4 summary cards (stack 2x2 on mobile), spending donut, salary bar, recent 7 expenses
-- **Add Expense** (`/add`) — full single-screen form, inline new-category creator, optimized for 375px
+I'll ship this in two database migrations + a focused set of UI changes. Order chosen so each step is verifiable before moving on.
 
-## Phase 2
-- **Expenses** (`/expenses`) — sticky filter bar, date presets, grouped list, swipe actions on mobile, live footer summary
+## 1. Database (one migration)
 
-## Phase 3
-- **Reports** (`/reports`) — sections A–F, charts collapse to full-width on mobile, sortable category table, payment mode donut, NEED/WANT/EMI/INVESTMENT split
+Three new tables, all with RLS scoped to `auth.uid()`:
 
-## Phase 4
-- **Insights** (`/insights`) — server-side insight generation, dismissible cards
-- **Categories** (`/categories`) — manage grid + reassign-on-delete flow
-- **Settings** (`/settings`) — profile, salary, currency, week start, data export/delete
+- **`recurring_expenses`** — `name, category_id, amount, payment_mode, start_date, end_date, day_of_month, note`. Used both as a plan record and as the source for auto-generated expense rows.
+- **`memory_entries`** (Money Memory / IOUs) — `direction` ('OWED_TO_ME' | 'I_OWE'), `person_name, amount, date, deadline, note, settled_at`.
+- **`monthly_savings`** — `month` (date, first of month), `salary_snapshot, total_spent, amount_saved`. One row per user per month.
 
-## Phase 5
-- **Export** — PDF (jsPDF + html2canvas), Excel (SheetJS), CSV (Papa Parse)
-- Polish: count-up animations, toasts with category color, undo on delete
+Plus a Postgres function `materialize_recurring_expenses(user_id)` that inserts any missing `expenses` rows for active recurring plans up to today, idempotently (unique on `recurring_id + date`). Called from a server fn on app load and after creating a recurring plan.
+
+A second function `recompute_savings(user_id)` recalculates `monthly_savings` for every completed month from the user's earliest expense onward.
+
+## 2. Reports page (`/reports`) — build out
+
+Always-on view (no insights gating):
+
+- **Range selector**: This month / Last month / Last 3 months / This year / All time.
+- **Total spent card** + **% of salary** + **# of transactions**.
+- **Spend by category** — sortable table (name · amount · % · count) + horizontal bar chart.
+- **Spend by payment mode** — donut.
+- **NEED / WANT / EMI / INVESTMENT split** — stacked bar with %.
+- **Monthly trend** — line chart (last 6 months).
+
+## 3. Recurring expenses (`/recurring`)
+
+New nav item. List of active + ended plans. "Add recurring" form: name, category, monthly amount, payment mode, start date, end date, day of month (1–28), note. On save: insert plan + materialize. Delete plan = stop future generation (past generated expenses stay).
+
+## 4. Money Memory (`/memory`)
+
+New nav item. Two tabs: **Owed to me** / **I owe**. Each entry shows person, amount, date logged, deadline (with "X days left" or "overdue" pill), note. Mark as settled (sets `settled_at`, hides from active list, shows in Settled tab). Add/edit/delete.
+
+## 5. Savings (`/savings`)
+
+New nav item. Auto-computed cards:
+
+- **Total saved till now** (sum of all `monthly_savings.amount_saved`, only positive months).
+- **Average monthly savings**.
+- **Best month**.
+- List: "Jan 2026 — ₹23,420 saved" rows, newest first, with salary + spend breakdown on tap.
+
+Recomputed on app load via server fn.
+
+## 6. Expenses — edit, delete, PDF
+
+- **Edit/Delete**: each expense row gets a kebab menu → Edit (opens `/add` prefilled via `?edit=<id>`) / Delete (confirm dialog, soft toast with undo).
+- **PDF export button** on `/expenses`: generates a styled PDF (header with month + total, category summary table, full transaction list grouped by date, footer with salary % and savings rate). Uses `jspdf` + `jspdf-autotable` — pure JS, Worker-safe. File: `Expenses-MMM-YYYY.pdf`.
+
+## 7. Nav update
+
+Mobile bottom nav becomes 5 primary: Dashboard · Add · Expenses · Reports · More. "More" sheet lists Recurring, Memory, Savings, Insights, Settings. Desktop side rail shows everything.
 
 ## Technical notes
-- Tech adapted to this template: TanStack Start (not Express), Lovable Cloud (Postgres + RLS, not standalone Prisma), `createServerFn` for server logic. Same data model, same UX.
-- Recharts, Zustand, react-hook-form, date-fns, lucide-react, sonner (toasts), Zod — all added as needed.
-- Mobile-first throughout: every layout designed at 375px first, then enhanced for tablet/desktop.
 
-Ready to start Phase 1?
+- All new pages mobile-first (375px).
+- Recurring materialization runs in a server fn called from `__root` on auth, debounced to once per session.
+- PDF generation is client-side (no server work, no extra deps beyond jspdf).
+- Edit flow reuses the existing `/add` form — no duplicate form.
+- All money math uses existing `formatCurrency` / `pctOfSalary` helpers.
+
+Ready to start? I'll begin with the migration, then ship features in the order above.
