@@ -19,6 +19,7 @@ export type Expense = {
   date: string;
   note: string | null;
   payment_mode: "UPI" | "CARD" | "CASH" | "NET_BANKING" | "EMI";
+  recurring_id?: string | null;
 };
 
 export type Profile = {
@@ -29,16 +30,44 @@ export type Profile = {
   currency: string;
 };
 
+export type Recurring = {
+  id: string;
+  category_id: string;
+  name: string;
+  amount: number;
+  payment_mode: Expense["payment_mode"];
+  start_date: string;
+  end_date: string;
+  day_of_month: number;
+  note: string | null;
+  is_active: boolean;
+};
+
+export type MemoryEntry = {
+  id: string;
+  direction: "OWED_TO_ME" | "I_OWE";
+  person_name: string;
+  amount: number;
+  date: string;
+  deadline: string | null;
+  note: string | null;
+  settled_at: string | null;
+};
+
+export type SavingRow = {
+  id: string;
+  month: string;
+  salary_snapshot: number;
+  total_spent: number;
+  amount_saved: number;
+};
+
 export function useProfile(userId: string | undefined) {
   return useQuery({
     queryKey: ["profile", userId],
     enabled: !!userId,
     queryFn: async (): Promise<Profile | null> => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId!)
-        .maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId!).maybeSingle();
       if (error) throw error;
       return data as Profile | null;
     },
@@ -50,11 +79,7 @@ export function useCategories(userId: string | undefined) {
     queryKey: ["categories", userId],
     enabled: !!userId,
     queryFn: async (): Promise<Category[]> => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("is_deleted", false)
-        .order("name");
+      const { data, error } = await supabase.from("categories").select("*").eq("is_deleted", false).order("name");
       if (error) throw error;
       return data as Category[];
     },
@@ -66,13 +91,7 @@ export function useExpenses(
   opts?: { from?: Date; to?: Date; limit?: number }
 ) {
   return useQuery({
-    queryKey: [
-      "expenses",
-      userId,
-      opts?.from?.toISOString(),
-      opts?.to?.toISOString(),
-      opts?.limit,
-    ],
+    queryKey: ["expenses", userId, opts?.from?.toISOString(), opts?.to?.toISOString(), opts?.limit],
     enabled: !!userId,
     queryFn: async (): Promise<Expense[]> => {
       let q = supabase.from("expenses").select("*").order("date", { ascending: false });
@@ -89,4 +108,49 @@ export function useExpenses(
 export function useThisMonthExpenses(userId: string | undefined) {
   const now = new Date();
   return useExpenses(userId, { from: startOfMonth(now), to: endOfMonth(now) });
+}
+
+export function useRecurring(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["recurring", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<Recurring[]> => {
+      const { data, error } = await supabase
+        .from("recurring_expenses")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Recurring[];
+    },
+  });
+}
+
+export function useMemoryEntries(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["memory", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<MemoryEntry[]> => {
+      const { data, error } = await supabase
+        .from("memory_entries")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as MemoryEntry[];
+    },
+  });
+}
+
+export function useSavings(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["savings", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<SavingRow[]> => {
+      const { data, error } = await supabase
+        .from("monthly_savings")
+        .select("*")
+        .order("month", { ascending: false });
+      if (error) throw error;
+      return data as SavingRow[];
+    },
+  });
 }

@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useProfile, useCategories, type Category } from "@/lib/expense-queries";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,10 @@ import { toast } from "sonner";
 import { Plus, X, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+type Search = { edit?: string };
+
 export const Route = createFileRoute("/add")({
+  validateSearch: (s: Record<string, unknown>): Search => ({ edit: typeof s.edit === "string" ? s.edit : undefined }),
   component: () => <AppShell><AddExpense /></AppShell>,
   head: () => ({ meta: [{ title: "Add expense — Spendr" }] }),
 });
@@ -30,6 +33,8 @@ function AddExpense() {
   const { user } = useAuth();
   const nav = useNavigate();
   const qc = useQueryClient();
+  const search = useSearch({ from: "/add" });
+  const editId = search.edit;
   const { data: profile } = useProfile(user?.id);
   const { data: categories = [] } = useCategories(user?.id);
 
@@ -41,8 +46,26 @@ function AddExpense() {
   const [note, setNote] = useState("");
   const [showNewCat, setShowNewCat] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [loadedEdit, setLoadedEdit] = useState(false);
 
   const symbol = currencySymbol(profile?.currency ?? "INR");
+  const isEdit = !!editId;
+
+  useEffect(() => {
+    if (!editId || loadedEdit) return;
+    (async () => {
+      const { data } = await supabase.from("expenses").select("*").eq("id", editId).maybeSingle();
+      if (data) {
+        setCategoryId(data.category_id);
+        setName(data.name);
+        setAmount(String(data.amount));
+        setDate(data.date);
+        setPaymentMode(data.payment_mode);
+        setNote(data.note ?? "");
+        setLoadedEdit(true);
+      }
+    })();
+  }, [editId, loadedEdit]);
 
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,24 +74,25 @@ function AddExpense() {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return toast.error("Enter a valid amount");
     setBusy(true);
-    const { error } = await supabase.from("expenses").insert({
-      user_id: user!.id, category_id: categoryId, name: name.trim(), amount: amt, date, payment_mode: paymentMode, note: note.trim() || null,
-    });
+    const payload = { category_id: categoryId, name: name.trim(), amount: amt, date, payment_mode: paymentMode, note: note.trim() || null };
+    const { error } = isEdit
+      ? await supabase.from("expenses").update(payload).eq("id", editId!)
+      : await supabase.from("expenses").insert({ ...payload, user_id: user!.id });
     setBusy(false);
     if (error) return toast.error(error.message);
     const cat = categories.find((c) => c.id === categoryId);
-    toast.success(`${symbol}${amt.toLocaleString("en-IN")} added to ${cat?.name}`);
+    toast.success(isEdit ? "Expense updated" : `${symbol}${amt.toLocaleString("en-IN")} added to ${cat?.name}`);
     qc.invalidateQueries({ queryKey: ["expenses"] });
-    nav({ to: "/" });
+    nav({ to: isEdit ? "/expenses" : "/" });
   };
 
   return (
     <div className="px-4 pt-4 pb-4 md:px-8 md:pt-8 max-w-2xl mx-auto">
       <div className="flex items-center gap-2 mb-5">
-        <Button variant="ghost" size="icon" onClick={() => nav({ to: "/" })} className="md:hidden">
+        <Button variant="ghost" size="icon" onClick={() => nav({ to: isEdit ? "/expenses" : "/" })} className="md:hidden">
           <ChevronLeft className="size-5" />
         </Button>
-        <h1 className="font-display text-2xl font-bold">Log expense</h1>
+        <h1 className="font-display text-2xl font-bold">{isEdit ? "Edit expense" : "Log expense"}</h1>
       </div>
 
       <form onSubmit={onSave} className="space-y-5">
@@ -130,7 +154,7 @@ function AddExpense() {
           <Textarea id="note" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
 
-        <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Saving…" : "Save expense"}</Button>
+        <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Saving…" : isEdit ? "Update expense" : "Save expense"}</Button>
       </form>
     </div>
   );
