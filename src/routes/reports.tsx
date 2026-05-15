@@ -9,11 +9,10 @@ import { CategoryDot } from "@/components/category-dot";
 import { SpendDonut } from "@/components/spend-donut";
 import { cn } from "@/lib/utils";
 import {
-  startOfMonth, endOfMonth, subMonths, startOfYear, format,
-  differenceInCalendarMonths, parseISO,
+  startOfMonth, endOfMonth, subMonths, startOfYear, format, parseISO,
 } from "date-fns";
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, CartesianGrid,
+  ResponsiveContainer, XAxis, YAxis, Tooltip, LineChart, Line, CartesianGrid,
 } from "recharts";
 
 export const Route = createFileRoute("/reports")({
