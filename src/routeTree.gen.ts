@@ -11,7 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SavingsRouteImport } from './routes/savings'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as RecurringRouteImport } from './routes/recurring'
+import { Route as MemoryRouteImport } from './routes/memory'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as ExpensesRouteImport } from './routes/expenses'
@@ -28,9 +31,24 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SavingsRoute = SavingsRouteImport.update({
+  id: '/savings',
+  path: '/savings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecurringRoute = RecurringRouteImport.update({
+  id: '/recurring',
+  path: '/recurring',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MemoryRoute = MemoryRouteImport.update({
+  id: '/memory',
+  path: '/memory',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -65,7 +83,10 @@ export interface FileRoutesByFullPath {
   '/expenses': typeof ExpensesRoute
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/memory': typeof MemoryRoute
+  '/recurring': typeof RecurringRoute
   '/reports': typeof ReportsRoute
+  '/savings': typeof SavingsRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
 }
@@ -75,7 +96,10 @@ export interface FileRoutesByTo {
   '/expenses': typeof ExpensesRoute
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/memory': typeof MemoryRoute
+  '/recurring': typeof RecurringRoute
   '/reports': typeof ReportsRoute
+  '/savings': typeof SavingsRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
 }
@@ -86,7 +110,10 @@ export interface FileRoutesById {
   '/expenses': typeof ExpensesRoute
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/memory': typeof MemoryRoute
+  '/recurring': typeof RecurringRoute
   '/reports': typeof ReportsRoute
+  '/savings': typeof SavingsRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
 }
@@ -98,7 +125,10 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/insights'
     | '/login'
+    | '/memory'
+    | '/recurring'
     | '/reports'
+    | '/savings'
     | '/settings'
     | '/signup'
   fileRoutesByTo: FileRoutesByTo
@@ -108,7 +138,10 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/insights'
     | '/login'
+    | '/memory'
+    | '/recurring'
     | '/reports'
+    | '/savings'
     | '/settings'
     | '/signup'
   id:
@@ -118,7 +151,10 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/insights'
     | '/login'
+    | '/memory'
+    | '/recurring'
     | '/reports'
+    | '/savings'
     | '/settings'
     | '/signup'
   fileRoutesById: FileRoutesById
@@ -129,7 +165,10 @@ export interface RootRouteChildren {
   ExpensesRoute: typeof ExpensesRoute
   InsightsRoute: typeof InsightsRoute
   LoginRoute: typeof LoginRoute
+  MemoryRoute: typeof MemoryRoute
+  RecurringRoute: typeof RecurringRoute
   ReportsRoute: typeof ReportsRoute
+  SavingsRoute: typeof SavingsRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
 }
@@ -150,11 +189,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/savings': {
+      id: '/savings'
+      path: '/savings'
+      fullPath: '/savings'
+      preLoaderRoute: typeof SavingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recurring': {
+      id: '/recurring'
+      path: '/recurring'
+      fullPath: '/recurring'
+      preLoaderRoute: typeof RecurringRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/memory': {
+      id: '/memory'
+      path: '/memory'
+      fullPath: '/memory'
+      preLoaderRoute: typeof MemoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -201,7 +261,10 @@ const rootRouteChildren: RootRouteChildren = {
   ExpensesRoute: ExpensesRoute,
   InsightsRoute: InsightsRoute,
   LoginRoute: LoginRoute,
+  MemoryRoute: MemoryRoute,
+  RecurringRoute: RecurringRoute,
   ReportsRoute: ReportsRoute,
+  SavingsRoute: SavingsRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
 }

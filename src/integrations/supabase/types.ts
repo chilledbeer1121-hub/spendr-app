@@ -60,6 +60,7 @@ export type Database = {
           name: string
           note: string | null
           payment_mode: Database["public"]["Enums"]["payment_mode"]
+          recurring_id: string | null
           updated_at: string
           user_id: string
         }
@@ -72,6 +73,7 @@ export type Database = {
           name: string
           note?: string | null
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
+          recurring_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -84,6 +86,7 @@ export type Database = {
           name?: string
           note?: string | null
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
+          recurring_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -96,6 +99,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      memory_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          deadline: string | null
+          direction: Database["public"]["Enums"]["memory_direction"]
+          id: string
+          note: string | null
+          person_name: string
+          settled_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          deadline?: string | null
+          direction: Database["public"]["Enums"]["memory_direction"]
+          id?: string
+          note?: string | null
+          person_name: string
+          settled_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          deadline?: string | null
+          direction?: Database["public"]["Enums"]["memory_direction"]
+          id?: string
+          note?: string | null
+          person_name?: string
+          settled_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      monthly_savings: {
+        Row: {
+          amount_saved: number
+          created_at: string
+          id: string
+          month: string
+          salary_snapshot: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_saved?: number
+          created_at?: string
+          id?: string
+          month: string
+          salary_snapshot?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_saved?: number
+          created_at?: string
+          id?: string
+          month?: string
+          salary_snapshot?: number
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -130,15 +208,68 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_expenses: {
+        Row: {
+          amount: number
+          category_id: string
+          created_at: string
+          day_of_month: number
+          end_date: string
+          id: string
+          is_active: boolean
+          name: string
+          note: string | null
+          payment_mode: Database["public"]["Enums"]["payment_mode"]
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category_id: string
+          created_at?: string
+          day_of_month?: number
+          end_date: string
+          id?: string
+          is_active?: boolean
+          name: string
+          note?: string | null
+          payment_mode?: Database["public"]["Enums"]["payment_mode"]
+          start_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string
+          created_at?: string
+          day_of_month?: number
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          note?: string | null
+          payment_mode?: Database["public"]["Enums"]["payment_mode"]
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      materialize_recurring_expenses: {
+        Args: { _user_id: string }
+        Returns: number
+      }
+      recompute_savings: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
       category_type: "NEED" | "WANT" | "EMI" | "INVESTMENT"
+      memory_direction: "OWED_TO_ME" | "I_OWE"
       payment_mode: "UPI" | "CARD" | "CASH" | "NET_BANKING" | "EMI"
     }
     CompositeTypes: {
@@ -268,6 +399,7 @@ export const Constants = {
   public: {
     Enums: {
       category_type: ["NEED", "WANT", "EMI", "INVESTMENT"],
+      memory_direction: ["OWED_TO_ME", "I_OWE"],
       payment_mode: ["UPI", "CARD", "CASH", "NET_BANKING", "EMI"],
     },
   },
