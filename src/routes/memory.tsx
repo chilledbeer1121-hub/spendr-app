@@ -11,10 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { AppShell } from "@/components/app-shell";
 import { formatCurrency } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, BookHeart, Trash2, Check } from "lucide-react";
+import { Plus, BookHeart, Trash2, Check, CalendarIcon } from "lucide-react";
 import { format, parseISO, differenceInCalendarDays } from "date-fns";
 import { cn } from "@/lib/utils";
 
