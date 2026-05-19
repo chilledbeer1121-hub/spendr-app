@@ -214,7 +214,28 @@ function MemoryForm({ onDone }: { onDone: () => void }) {
         </div>
         <div className="space-y-1.5">
           <Label>Deadline</Label>
-          <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button type="button" variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
+                <CalendarIcon className="size-4 mr-2 opacity-60" />
+                {deadline ? format(parseISO(deadline), "MMM d, yyyy") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={deadline ? parseISO(deadline) : undefined}
+                onSelect={(d) => setDeadline(d ? format(d, "yyyy-MM-dd") : "")}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+              {deadline && (
+                <div className="border-t p-2">
+                  <Button type="button" variant="ghost" size="sm" className="w-full text-xs" onClick={() => setDeadline("")}>Clear</Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       <div className="space-y-1.5">
