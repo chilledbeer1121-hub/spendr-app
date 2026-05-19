@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useExpenses, useCategories, useProfile } from "@/lib/expense-queries";
 import { formatCurrency, pctOfSalary } from "@/lib/format";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AppShell } from "@/components/app-shell";
 import { CategoryDot } from "@/components/category-dot";
 import { SpendDonut } from "@/components/spend-donut";
