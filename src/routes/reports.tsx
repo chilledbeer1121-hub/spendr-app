@@ -226,6 +226,62 @@ function ReportsPage() {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      <Dialog open={!!drillCategoryId} onOpenChange={(o) => !o && setDrillCategoryId(null)}>
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+          {(() => {
+            const cat = byCategory.find((c) => c.id === drillCategoryId);
+            if (!cat) return null;
+            const items = expenses
+              .filter((e) => e.category_id === cat.id)
+              .sort((a, b) => (a.date < b.date ? 1 : -1));
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <CategoryDot color={cat.color} icon="tag" size="sm" />
+                    {cat.name}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-3 gap-2 py-2 border-b border-border">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</div>
+                    <div className="font-display text-base font-bold tabular-nums">{formatCurrency(cat.amount, currency)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">% of spend</div>
+                    <div className="font-display text-base font-bold tabular-nums">{total > 0 ? ((cat.amount / total) * 100).toFixed(1) : "0"}%</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Count</div>
+                    <div className="font-display text-base font-bold tabular-nums">{cat.count}</div>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto -mx-6 px-6 divide-y divide-border">
+                  {items.map((e) => {
+                    const pct = cat.amount > 0 ? (Number(e.amount) / cat.amount) * 100 : 0;
+                    return (
+                      <div key={e.id} className="py-2.5 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-medium text-sm truncate">{e.name}</div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                            {format(parseISO(e.date), "MMM d, yyyy")} · {e.payment_mode.replace("_", " ")}
+                          </div>
+                          {e.note && <div className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{e.note}</div>}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-semibold tabular-nums text-sm">{formatCurrency(Number(e.amount), currency)}</div>
+                          <div className="text-[10px] text-muted-foreground tabular-nums">{pct.toFixed(1)}%</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
