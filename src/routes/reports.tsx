@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useExpenses, useCategories, useProfile } from "@/lib/expense-queries";
 import { formatCurrency, pctOfSalary } from "@/lib/format";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AppShell } from "@/components/app-shell";
 import { CategoryDot } from "@/components/category-dot";
 import { SpendDonut } from "@/components/spend-donut";
@@ -53,6 +54,7 @@ function ReportsPage() {
   const { data: profile } = useProfile(user?.id);
   const { data: categories = [] } = useCategories(user?.id);
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
+  const [drillCategoryId, setDrillCategoryId] = useState<string | null>(null);
   const range = rangeFor(rangeKey);
   const { data: expenses = [] } = useExpenses(user?.id, { from: range.from, to: range.to });
   const { data: trendExpenses = [] } = useExpenses(user?.id, { from: startOfMonth(subMonths(new Date(), 5)) });
@@ -148,7 +150,12 @@ function ReportsPage() {
               {byCategory.map((c) => {
                 const pct = total > 0 ? (c.amount / total) * 100 : 0;
                 return (
-                  <div key={c.id}>
+                  <button
+                    type="button"
+                    key={c.id}
+                    onClick={() => setDrillCategoryId(c.id)}
+                    className="w-full text-left rounded-md -mx-1 px-1 py-1 hover:bg-muted/50 transition-colors"
+                  >
                     <div className="flex items-center justify-between text-sm mb-1">
                       <div className="flex items-center gap-2 min-w-0">
                         <CategoryDot color={c.color} icon="tag" size="sm" />
@@ -163,10 +170,11 @@ function ReportsPage() {
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: c.color }} />
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
+            <p className="text-[11px] text-muted-foreground mt-2">Tap a category for details.</p>
           </>
         )}
       </Card>
@@ -218,6 +226,62 @@ function ReportsPage() {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      <Dialog open={!!drillCategoryId} onOpenChange={(o) => !o && setDrillCategoryId(null)}>
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+          {(() => {
+            const cat = byCategory.find((c) => c.id === drillCategoryId);
+            if (!cat) return null;
+            const items = expenses
+              .filter((e) => e.category_id === cat.id)
+              .sort((a, b) => (a.date < b.date ? 1 : -1));
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <CategoryDot color={cat.color} icon="tag" size="sm" />
+                    {cat.name}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-3 gap-2 py-2 border-b border-border">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</div>
+                    <div className="font-display text-base font-bold tabular-nums">{formatCurrency(cat.amount, currency)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">% of spend</div>
+                    <div className="font-display text-base font-bold tabular-nums">{total > 0 ? ((cat.amount / total) * 100).toFixed(1) : "0"}%</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Count</div>
+                    <div className="font-display text-base font-bold tabular-nums">{cat.count}</div>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto -mx-6 px-6 divide-y divide-border">
+                  {items.map((e) => {
+                    const pct = cat.amount > 0 ? (Number(e.amount) / cat.amount) * 100 : 0;
+                    return (
+                      <div key={e.id} className="py-2.5 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-medium text-sm truncate">{e.name}</div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                            {format(parseISO(e.date), "MMM d, yyyy")} · {e.payment_mode.replace("_", " ")}
+                          </div>
+                          {e.note && <div className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{e.note}</div>}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-semibold tabular-nums text-sm">{formatCurrency(Number(e.amount), currency)}</div>
+                          <div className="text-[10px] text-muted-foreground tabular-nums">{pct.toFixed(1)}%</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
