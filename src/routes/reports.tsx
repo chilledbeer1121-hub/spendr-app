@@ -150,7 +150,12 @@ function ReportsPage() {
               {byCategory.map((c) => {
                 const pct = total > 0 ? (c.amount / total) * 100 : 0;
                 return (
-                  <div key={c.id}>
+                  <button
+                    type="button"
+                    key={c.id}
+                    onClick={() => setDrillCategoryId(c.id)}
+                    className="w-full text-left rounded-md -mx-1 px-1 py-1 hover:bg-muted/50 transition-colors"
+                  >
                     <div className="flex items-center justify-between text-sm mb-1">
                       <div className="flex items-center gap-2 min-w-0">
                         <CategoryDot color={c.color} icon="tag" size="sm" />
@@ -165,10 +170,11 @@ function ReportsPage() {
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: c.color }} />
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
+            <p className="text-[11px] text-muted-foreground mt-2">Tap a category for details.</p>
           </>
         )}
       </Card>
