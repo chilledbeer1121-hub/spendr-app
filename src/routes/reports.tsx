@@ -54,6 +54,7 @@ function ReportsPage() {
   const { data: profile } = useProfile(user?.id);
   const { data: categories = [] } = useCategories(user?.id);
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
+  const [drillCategoryId, setDrillCategoryId] = useState<string | null>(null);
   const range = rangeFor(rangeKey);
   const { data: expenses = [] } = useExpenses(user?.id, { from: range.from, to: range.to });
   const { data: trendExpenses = [] } = useExpenses(user?.id, { from: startOfMonth(subMonths(new Date(), 5)) });
