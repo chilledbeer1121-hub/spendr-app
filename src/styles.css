@@ -5,9 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Expense Tracker — dark-first design system.
- * Accent: vivid lime (money/positive). No purple gradients.
- * All colors live here as semantic tokens.
+ * Spendr — warm cream canvas + neon lime accent.
+ * Light-first. All colors are semantic tokens.
  */
 
 @theme inline {
@@ -56,82 +55,83 @@
   --color-chart-5: var(--chart-5);
 }
 
-/* Dark-first */
+/* Light-first — warm cream canvas, neon lime accent, dark ink */
 :root {
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 
-  /* Surfaces — deep ink */
-  --background: oklch(0.165 0.018 250);
-  --foreground: oklch(0.97 0.01 100);
+  /* Surfaces — warm cream */
+  --background: #F7F3EF;          /* page canvas (neon_white.100) */
+  --foreground: #0F0F0C;          /* ink.1 */
 
-  --card: oklch(0.215 0.02 250);
-  --card-foreground: oklch(0.97 0.01 100);
+  --card: #FBF7F2;                /* elevated cards (neon_white.50) */
+  --card-foreground: #0F0F0C;
 
-  --popover: oklch(0.22 0.02 250);
-  --popover-foreground: oklch(0.97 0.01 100);
+  --popover: #FEFCF9;             /* modals, popovers (neon_white.25) */
+  --popover-foreground: #0F0F0C;
 
-  /* Primary — vivid lime */
-  --primary: oklch(0.86 0.21 130);
-  --primary-foreground: oklch(0.18 0.02 250);
+  /* Primary — neon lime */
+  --primary: #C6F25C;             /* primary.300 — brand fill */
+  --primary-foreground: #0F0F0C;  /* dark ink on lime */
 
-  --secondary: oklch(0.27 0.02 250);
-  --secondary-foreground: oklch(0.97 0.01 100);
+  --secondary: #EDE8E1;           /* warm subtle (neon_white.200) */
+  --secondary-foreground: #0F0F0C;
 
-  --muted: oklch(0.245 0.018 250);
-  --muted-foreground: oklch(0.7 0.02 250);
+  --muted: #EDE8E1;               /* hover / soft fills */
+  --muted-foreground: #6B6256;    /* ink.3 — meta text */
 
-  --accent: oklch(0.3 0.04 145);
-  --accent-foreground: oklch(0.97 0.01 100);
+  --accent: #E9F99C;              /* primary.100 — tinted accent bg */
+  --accent-foreground: #0F0F0C;
 
-  --destructive: oklch(0.68 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive: #F04438;
+  --destructive-foreground: #FFFFFF;
 
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.86 0.21 130);
+  --border: #E1DAD0;              /* neon_white.300 */
+  --input: #E1DAD0;
+  --ring: #9FCC2B;                /* primary.500 — focus ring strong */
 
-  --success: oklch(0.78 0.18 155);
-  --warning: oklch(0.82 0.17 75);
-  --info: oklch(0.72 0.16 230);
+  --success: #12B76A;
+  --warning: #F79009;
+  --info: #2E90FA;
 
-  /* Category type colors */
-  --need: oklch(0.7 0.15 240);
-  --want: oklch(0.82 0.17 75);
-  --emi: oklch(0.7 0.18 305);
-  --investment: oklch(0.78 0.18 155);
+  /* Expense type colors (NEED / WANT / EMI / INVESTMENT) */
+  --need: #2E90FA;                /* blue.500 */
+  --want: #F79009;                /* yellow.500 */
+  --emi: #9E77ED;                 /* violet.500 */
+  --investment: #12B76A;          /* green.500 */
 
-  --chart-1: oklch(0.86 0.21 130);
-  --chart-2: oklch(0.78 0.18 155);
-  --chart-3: oklch(0.72 0.16 230);
-  --chart-4: oklch(0.82 0.17 75);
-  --chart-5: oklch(0.7 0.18 305);
+  /* Charts — vivid, distinct on cream */
+  --chart-1: #9FCC2B;             /* lime (primary.500) */
+  --chart-2: #2E90FA;             /* blue */
+  --chart-3: #F79009;             /* amber */
+  --chart-4: #9E77ED;             /* violet */
+  --chart-5: #F63D68;             /* rose */
 
-  --gradient-primary: linear-gradient(135deg, oklch(0.86 0.21 130), oklch(0.78 0.18 155));
-  --gradient-card: linear-gradient(160deg, oklch(0.23 0.022 250), oklch(0.2 0.018 250));
-  --shadow-glow: 0 0 40px -10px oklch(0.86 0.21 130 / 0.3);
-  --shadow-card: 0 4px 24px -8px oklch(0 0 0 / 0.4);
+  --gradient-primary: linear-gradient(135deg, #C6F25C, #9FCC2B);
+  --gradient-card: linear-gradient(160deg, #FBF7F2, #F7F3EF);
+  --shadow-glow: 0 0 32px -8px rgba(159, 204, 43, 0.35);
+  --shadow-card: 0 1px 2px rgba(15, 15, 12, 0.04), 0 8px 24px -12px rgba(15, 15, 12, 0.08);
 }
 
-.light {
-  --background: oklch(0.99 0.005 100);
-  --foreground: oklch(0.18 0.02 250);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 250);
-  --primary: oklch(0.55 0.18 145);
-  --primary-foreground: oklch(0.98 0.01 100);
-  --secondary: oklch(0.95 0.01 100);
-  --secondary-foreground: oklch(0.18 0.02 250);
-  --muted: oklch(0.95 0.01 100);
-  --muted-foreground: oklch(0.45 0.02 250);
-  --accent: oklch(0.92 0.04 145);
-  --accent-foreground: oklch(0.18 0.02 250);
-  --destructive: oklch(0.6 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.9 0.01 250);
-  --input: oklch(0.93 0.01 250);
-  --ring: oklch(0.55 0.18 145);
+.dark {
+  --background: #131312;
+  --foreground: #E8E7E1;
+  --card: #1C1C1A;
+  --card-foreground: #E8E7E1;
+  --popover: #262624;
+  --popover-foreground: #E8E7E1;
+  --primary: #C6F25C;
+  --primary-foreground: #0F0F0C;
+  --secondary: #262624;
+  --secondary-foreground: #E8E7E1;
+  --muted: #262624;
+  --muted-foreground: #97968F;
+  --accent: #3A362E;
+  --accent-foreground: #E8E7E1;
+  --destructive: #F04438;
+  --destructive-foreground: #FFFFFF;
+  --border: #2A2A28;
+  --input: #2A2A28;
+  --ring: #C6F25C;
 }
 
 @layer base {
@@ -144,17 +144,21 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
-  /* Number tabular alignment */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Comfortable mobile tap targets */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
-/* Hide scrollbars on horizontal scrollers but keep scroll */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Safe-area for mobile bottom nav */
-.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+.pt-safe { padding-top: max(env(safe-area-inset-top), 0px); }
