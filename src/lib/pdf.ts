@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format, parseISO } from "date-fns";
-import { formatCurrency } from "./format";
+import { formatCurrencyPDF } from "./format";
 import type { Expense, Category, Profile } from "./expense-queries";
 
 export function exportExpensesPDF(opts: {
@@ -42,7 +42,7 @@ export function exportExpensesPDF(opts: {
   doc.text("TRANSACTIONS", 220, y);
   doc.text("% OF SALARY", 380, y);
   doc.setFontSize(18);
-  doc.text(formatCurrency(total, currency), 40, y + 22);
+  doc.text(formatCurrencyPDF(total, currency), 40, y + 22);
   doc.text(`${expenses.length}`, 220, y + 22);
   const pct = profile.monthly_salary > 0 ? ((total / profile.monthly_salary) * 100).toFixed(1) + "%" : "—";
   doc.text(pct, 380, y + 22);
@@ -60,7 +60,7 @@ export function exportExpensesPDF(opts: {
   });
   const catRows = Array.from(byCat.values())
     .sort((a, b) => b.amount - a.amount)
-    .map((r) => [r.name, r.count.toString(), formatCurrency(r.amount, currency), total > 0 ? ((r.amount / total) * 100).toFixed(1) + "%" : "0%"]);
+    .map((r) => [r.name, r.count.toString(), formatCurrencyPDF(r.amount, currency), total > 0 ? ((r.amount / total) * 100).toFixed(1) + "%" : "0%"]);
 
   autoTable(doc, {
     head: [["Category", "Count", "Amount", "% of total"]],
@@ -86,7 +86,7 @@ export function exportExpensesPDF(opts: {
       e.name,
       c?.name ?? "—",
       e.payment_mode,
-      formatCurrency(Number(e.amount), currency),
+      formatCurrencyPDF(Number(e.amount), currency),
     ];
   });
 
