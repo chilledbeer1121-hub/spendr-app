@@ -12,6 +12,21 @@ export function formatCurrency(amount: number, currency = "INR"): string {
   return `${symbol}${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(amount))}`;
 }
 
+// PDF-safe currency formatter. jsPDF's built-in Helvetica uses WinAnsi
+// encoding which doesn't support ₹ (U+20B9) or د.إ — they render as garbled
+// glyphs with broken letter spacing. Use ASCII-safe prefixes instead.
+export function formatCurrencyPDF(amount: number, currency = "INR"): string {
+  const rounded = Math.round(amount);
+  if (currency === "INR") {
+    return `Rs ${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(rounded)}`;
+  }
+  if (currency === "AED") {
+    return `AED ${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(rounded)}`;
+  }
+  const symbol = { USD: "$", EUR: "EUR ", GBP: "GBP " }[currency] ?? `${currency} `;
+  return `${symbol}${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(rounded)}`;
+}
+
 export function currencySymbol(currency = "INR"): string {
   return ({ INR: "₹", USD: "$", EUR: "€", GBP: "£", AED: "د.إ" } as Record<string, string>)[currency] ?? "";
 }
