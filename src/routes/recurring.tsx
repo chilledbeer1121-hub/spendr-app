@@ -85,6 +85,7 @@ function RecurringPage() {
                   <div className="flex items-center gap-2">
                     <div className="font-medium text-sm truncate">{r.name}</div>
                     {ended && <span className="text-[9px] uppercase tracking-wider text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">Ended</span>}
+                    {r.card_id && <span className="text-[9px] uppercase tracking-wider text-primary bg-primary/10 rounded-full px-1.5 py-0.5">Card</span>}
                   </div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">
                     Day {r.day_of_month} · {format(parseISO(r.start_date), "MMM yyyy")} → {format(parseISO(r.end_date), "MMM yyyy")} · {r.payment_mode}
