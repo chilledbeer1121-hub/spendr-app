@@ -130,11 +130,15 @@ function RecurringForm({ onDone }: { onDone: () => void }) {
     if (!amt || amt <= 0) return toast.error("Amount?");
     if (!dom || dom < 1 || dom > 28) return toast.error("Day must be 1–28");
     if (endDate < startDate) return toast.error("End date before start");
+    const onCard = paymentMode === "CARD" || paymentMode === "EMI";
+    if (onCard && cards.length > 0 && !cardId) {
+      // optional but encourage it
+    }
     setBusy(true);
     const { data: ins, error } = await supabase.from("recurring_expenses").insert({
       user_id: user!.id, name: name.trim(), category_id: categoryId, amount: amt,
       payment_mode: paymentMode, start_date: startDate, end_date: endDate, day_of_month: dom,
-      note: note.trim() || null,
+      note: note.trim() || null, card_id: onCard ? cardId : null,
     }).select("id").single();
     if (error || !ins) { setBusy(false); return toast.error(error?.message ?? "Failed"); }
     await supabase.rpc("materialize_recurring_expenses", { _user_id: user!.id });
