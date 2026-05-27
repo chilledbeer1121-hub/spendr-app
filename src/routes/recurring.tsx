@@ -107,10 +107,12 @@ function RecurringPage() {
 function RecurringForm({ onDone }: { onDone: () => void }) {
   const { user } = useAuth();
   const { data: categories = [] } = useCategories(user?.id);
+  const { data: cards = [] } = useCards(user?.id);
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [amount, setAmount] = useState("");
   const [paymentMode, setPaymentMode] = useState<typeof PAYMENT_MODES[number]>("EMI");
+  const [cardId, setCardId] = useState<string | null>(null);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(() => {
     const d = new Date(); d.setFullYear(d.getFullYear() + 1); return d.toISOString().slice(0, 10);
