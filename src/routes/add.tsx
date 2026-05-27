@@ -154,6 +154,33 @@ function AddExpense() {
           </div>
         </div>
 
+        {paymentMode === "CARD" && (
+          <div className="space-y-1.5">
+            <Label>Which card?</Label>
+            {cards.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+                No cards yet. <button type="button" className="text-primary font-medium underline" onClick={() => nav({ to: "/cards" })}>Add one →</button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {cards.map((c) => (
+                  <button key={c.id} type="button" onClick={() => setCardId(c.id)}
+                    className={cn("rounded-full px-3 py-1.5 text-xs font-medium transition-all flex items-center gap-1.5 border-2",
+                      cardId === c.id ? "border-primary bg-primary/10" : "border-transparent bg-muted text-muted-foreground hover:text-foreground")}>
+                    <span className="size-2 rounded-full" style={{ background: c.color }} />
+                    {c.name}{c.last4 ? ` ••${c.last4}` : ""}
+                  </button>
+                ))}
+              </div>
+            )}
+            {cardId && (
+              <p className="text-[11px] text-muted-foreground">
+                Charged to card · will be due on its next billing cycle (expense date saved as {date}).
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="space-y-1.5">
           <Label htmlFor="note">Note (optional)</Label>
           <Textarea id="note" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
