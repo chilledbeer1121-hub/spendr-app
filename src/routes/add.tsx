@@ -63,6 +63,7 @@ function AddExpense() {
         setAmount(String(data.amount));
         setDate(data.date);
         setPaymentMode(data.payment_mode);
+        setCardId(data.card_id ?? null);
         setNote(data.note ?? "");
         setLoadedEdit(true);
       }
