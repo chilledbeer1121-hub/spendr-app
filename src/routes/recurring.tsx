@@ -191,6 +191,24 @@ function RecurringForm({ onDone }: { onDone: () => void }) {
           </SelectContent>
         </Select>
       </div>
+      {(paymentMode === "CARD" || paymentMode === "EMI") && cards.length > 0 && (
+        <div className="space-y-1.5">
+          <Label>Charge to card (optional)</Label>
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" onClick={() => setCardId(null)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ${cardId === null ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+              None
+            </button>
+            {cards.map((c) => (
+              <button key={c.id} type="button" onClick={() => setCardId(c.id)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${cardId === c.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                <span className="size-2 rounded-full" style={{ background: c.color }} />
+                {c.name}{c.last4 ? ` ••${c.last4}` : ""}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="space-y-1.5">
         <Label>Note (optional)</Label>
         <Textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
