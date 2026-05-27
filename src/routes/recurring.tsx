@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useRecurring, useCategories } from "@/lib/expense-queries";
+import { useRecurring, useCategories, useCards } from "@/lib/expense-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
