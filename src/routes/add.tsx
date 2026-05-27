@@ -76,8 +76,10 @@ function AddExpense() {
     if (!name.trim()) return toast.error("Add a name");
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return toast.error("Enter a valid amount");
+    if (paymentMode === "CARD" && !cardId && cards.length > 0) return toast.error("Pick which card");
     setBusy(true);
-    const payload = { category_id: categoryId, name: name.trim(), amount: amt, date, payment_mode: paymentMode, note: note.trim() || null };
+    const finalCardId = paymentMode === "CARD" ? cardId : null;
+    const payload = { category_id: categoryId, name: name.trim(), amount: amt, date, payment_mode: paymentMode, note: note.trim() || null, card_id: finalCardId };
     const { error } = isEdit
       ? await supabase.from("expenses").update(payload).eq("id", editId!)
       : await supabase.from("expenses").insert({ ...payload, user_id: user!.id });
