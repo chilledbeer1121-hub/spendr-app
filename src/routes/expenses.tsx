@@ -48,6 +48,7 @@ function ExpensesPage() {
   const { data: profile } = useProfile(user?.id);
   const { data: expenses = [] } = useExpenses(user?.id, { from: r.from, to: r.to });
   const { data: categories = [] } = useCategories(user?.id);
+  const { data: cards = [] } = useCards(user?.id);
   const currency = profile?.currency ?? "INR";
   const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
 
