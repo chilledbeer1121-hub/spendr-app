@@ -57,6 +57,7 @@ export type Recurring = {
   day_of_month: number;
   note: string | null;
   is_active: boolean;
+  card_id?: string | null;
 };
 
 export type MemoryEntry = {
