@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Plus, ListOrdered, BarChart3, Lightbulb, Wallet, Settings, LogOut,
-  MoreHorizontal, Repeat, BookHeart, PiggyBank,
+  MoreHorizontal, Repeat, BookHeart, PiggyBank, CreditCard as CreditCardIcon,
 } from "lucide-react";
 
 const primaryNav = [
@@ -18,6 +18,7 @@ const primaryNav = [
 ] as const;
 
 const moreNav = [
+  { to: "/cards", label: "Cards", icon: CreditCardIcon },
   { to: "/recurring", label: "Recurring (EMIs)", icon: Repeat },
   { to: "/memory", label: "Money Memory", icon: BookHeart },
   { to: "/savings", label: "Savings", icon: PiggyBank },
