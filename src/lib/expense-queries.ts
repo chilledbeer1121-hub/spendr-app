@@ -20,6 +20,22 @@ export type Expense = {
   note: string | null;
   payment_mode: "UPI" | "CARD" | "CASH" | "NET_BANKING" | "EMI";
   recurring_id?: string | null;
+  card_id?: string | null;
+};
+
+export type CreditCard = {
+  id: string;
+  name: string;
+  last4: string | null;
+  network: string | null;
+  issuer: string | null;
+  billing_day: number;
+  due_day: number;
+  credit_limit: number | null;
+  color: string;
+  note: string | null;
+  settled_until: string | null;
+  is_active: boolean;
 };
 
 export type Profile = {
