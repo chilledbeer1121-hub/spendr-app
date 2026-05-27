@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      cards: {
+        Row: {
+          billing_day: number
+          color: string
+          created_at: string
+          credit_limit: number | null
+          due_day: number
+          id: string
+          is_active: boolean
+          issuer: string | null
+          last4: string | null
+          name: string
+          network: string | null
+          note: string | null
+          settled_until: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_day?: number
+          color?: string
+          created_at?: string
+          credit_limit?: number | null
+          due_day?: number
+          id?: string
+          is_active?: boolean
+          issuer?: string | null
+          last4?: string | null
+          name: string
+          network?: string | null
+          note?: string | null
+          settled_until?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_day?: number
+          color?: string
+          created_at?: string
+          credit_limit?: number | null
+          due_day?: number
+          id?: string
+          is_active?: boolean
+          issuer?: string | null
+          last4?: string | null
+          name?: string
+          network?: string | null
+          note?: string | null
+          settled_until?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           color: string
@@ -53,6 +107,7 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          card_id: string | null
           category_id: string
           created_at: string
           date: string
@@ -66,6 +121,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          card_id?: string | null
           category_id: string
           created_at?: string
           date?: string
@@ -79,6 +135,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          card_id?: string | null
           category_id?: string
           created_at?: string
           date?: string
@@ -211,6 +268,7 @@ export type Database = {
       recurring_expenses: {
         Row: {
           amount: number
+          card_id: string | null
           category_id: string
           created_at: string
           day_of_month: number
@@ -226,6 +284,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          card_id?: string | null
           category_id: string
           created_at?: string
           day_of_month?: number
@@ -241,6 +300,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          card_id?: string | null
           category_id?: string
           created_at?: string
           day_of_month?: number

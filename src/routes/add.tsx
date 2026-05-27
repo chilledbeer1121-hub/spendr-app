@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useProfile, useCategories, type Category } from "@/lib/expense-queries";
+import { useProfile, useCategories, useCards, type Category } from "@/lib/expense-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -37,12 +37,14 @@ function AddExpense() {
   const editId = search.edit;
   const { data: profile } = useProfile(user?.id);
   const { data: categories = [] } = useCategories(user?.id);
+  const { data: cards = [] } = useCards(user?.id);
 
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paymentMode, setPaymentMode] = useState<typeof PAYMENT_MODES[number]>("UPI");
+  const [cardId, setCardId] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [showNewCat, setShowNewCat] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -61,6 +63,7 @@ function AddExpense() {
         setAmount(String(data.amount));
         setDate(data.date);
         setPaymentMode(data.payment_mode);
+        setCardId(data.card_id ?? null);
         setNote(data.note ?? "");
         setLoadedEdit(true);
       }
@@ -73,8 +76,10 @@ function AddExpense() {
     if (!name.trim()) return toast.error("Add a name");
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return toast.error("Enter a valid amount");
+    if (paymentMode === "CARD" && !cardId && cards.length > 0) return toast.error("Pick which card");
     setBusy(true);
-    const payload = { category_id: categoryId, name: name.trim(), amount: amt, date, payment_mode: paymentMode, note: note.trim() || null };
+    const finalCardId = paymentMode === "CARD" ? cardId : null;
+    const payload = { category_id: categoryId, name: name.trim(), amount: amt, date, payment_mode: paymentMode, note: note.trim() || null, card_id: finalCardId };
     const { error } = isEdit
       ? await supabase.from("expenses").update(payload).eq("id", editId!)
       : await supabase.from("expenses").insert({ ...payload, user_id: user!.id });
@@ -148,6 +153,33 @@ function AddExpense() {
             </div>
           </div>
         </div>
+
+        {paymentMode === "CARD" && (
+          <div className="space-y-1.5">
+            <Label>Which card?</Label>
+            {cards.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+                No cards yet. <button type="button" className="text-primary font-medium underline" onClick={() => nav({ to: "/cards" })}>Add one →</button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {cards.map((c) => (
+                  <button key={c.id} type="button" onClick={() => setCardId(c.id)}
+                    className={cn("rounded-full px-3 py-1.5 text-xs font-medium transition-all flex items-center gap-1.5 border-2",
+                      cardId === c.id ? "border-primary bg-primary/10" : "border-transparent bg-muted text-muted-foreground hover:text-foreground")}>
+                    <span className="size-2 rounded-full" style={{ background: c.color }} />
+                    {c.name}{c.last4 ? ` ••${c.last4}` : ""}
+                  </button>
+                ))}
+              </div>
+            )}
+            {cardId && (
+              <p className="text-[11px] text-muted-foreground">
+                Charged to card · will be due on its next billing cycle (expense date saved as {date}).
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="space-y-1.5">
           <Label htmlFor="note">Note (optional)</Label>

@@ -20,6 +20,22 @@ export type Expense = {
   note: string | null;
   payment_mode: "UPI" | "CARD" | "CASH" | "NET_BANKING" | "EMI";
   recurring_id?: string | null;
+  card_id?: string | null;
+};
+
+export type CreditCard = {
+  id: string;
+  name: string;
+  last4: string | null;
+  network: string | null;
+  issuer: string | null;
+  billing_day: number;
+  due_day: number;
+  credit_limit: number | null;
+  color: string;
+  note: string | null;
+  settled_until: string | null;
+  is_active: boolean;
 };
 
 export type Profile = {
@@ -41,6 +57,7 @@ export type Recurring = {
   day_of_month: number;
   note: string | null;
   is_active: boolean;
+  card_id?: string | null;
 };
 
 export type MemoryEntry = {
@@ -151,6 +168,21 @@ export function useSavings(userId: string | undefined) {
         .order("month", { ascending: false });
       if (error) throw error;
       return data as SavingRow[];
+    },
+  });
+}
+
+export function useCards(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["cards", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<CreditCard[]> => {
+      const { data, error } = await supabase
+        .from("cards")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as CreditCard[];
     },
   });
 }

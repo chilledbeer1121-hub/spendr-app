@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useRecurring, useCategories } from "@/lib/expense-queries";
+import { useRecurring, useCategories, useCards } from "@/lib/expense-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -85,6 +85,7 @@ function RecurringPage() {
                   <div className="flex items-center gap-2">
                     <div className="font-medium text-sm truncate">{r.name}</div>
                     {ended && <span className="text-[9px] uppercase tracking-wider text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">Ended</span>}
+                    {r.card_id && <span className="text-[9px] uppercase tracking-wider text-primary bg-primary/10 rounded-full px-1.5 py-0.5">Card</span>}
                   </div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">
                     Day {r.day_of_month} · {format(parseISO(r.start_date), "MMM yyyy")} → {format(parseISO(r.end_date), "MMM yyyy")} · {r.payment_mode}
@@ -106,10 +107,12 @@ function RecurringPage() {
 function RecurringForm({ onDone }: { onDone: () => void }) {
   const { user } = useAuth();
   const { data: categories = [] } = useCategories(user?.id);
+  const { data: cards = [] } = useCards(user?.id);
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [amount, setAmount] = useState("");
   const [paymentMode, setPaymentMode] = useState<typeof PAYMENT_MODES[number]>("EMI");
+  const [cardId, setCardId] = useState<string | null>(null);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(() => {
     const d = new Date(); d.setFullYear(d.getFullYear() + 1); return d.toISOString().slice(0, 10);
@@ -127,11 +130,15 @@ function RecurringForm({ onDone }: { onDone: () => void }) {
     if (!amt || amt <= 0) return toast.error("Amount?");
     if (!dom || dom < 1 || dom > 28) return toast.error("Day must be 1–28");
     if (endDate < startDate) return toast.error("End date before start");
+    const onCard = paymentMode === "CARD" || paymentMode === "EMI";
+    if (onCard && cards.length > 0 && !cardId) {
+      // optional but encourage it
+    }
     setBusy(true);
     const { data: ins, error } = await supabase.from("recurring_expenses").insert({
       user_id: user!.id, name: name.trim(), category_id: categoryId, amount: amt,
       payment_mode: paymentMode, start_date: startDate, end_date: endDate, day_of_month: dom,
-      note: note.trim() || null,
+      note: note.trim() || null, card_id: onCard ? cardId : null,
     }).select("id").single();
     if (error || !ins) { setBusy(false); return toast.error(error?.message ?? "Failed"); }
     await supabase.rpc("materialize_recurring_expenses", { _user_id: user!.id });
@@ -184,6 +191,24 @@ function RecurringForm({ onDone }: { onDone: () => void }) {
           </SelectContent>
         </Select>
       </div>
+      {(paymentMode === "CARD" || paymentMode === "EMI") && cards.length > 0 && (
+        <div className="space-y-1.5">
+          <Label>Charge to card (optional)</Label>
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" onClick={() => setCardId(null)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ${cardId === null ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+              None
+            </button>
+            {cards.map((c) => (
+              <button key={c.id} type="button" onClick={() => setCardId(c.id)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${cardId === c.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                <span className="size-2 rounded-full" style={{ background: c.color }} />
+                {c.name}{c.last4 ? ` ••${c.last4}` : ""}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="space-y-1.5">
         <Label>Note (optional)</Label>
         <Textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
