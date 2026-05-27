@@ -37,12 +37,14 @@ function AddExpense() {
   const editId = search.edit;
   const { data: profile } = useProfile(user?.id);
   const { data: categories = [] } = useCategories(user?.id);
+  const { data: cards = [] } = useCards(user?.id);
 
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paymentMode, setPaymentMode] = useState<typeof PAYMENT_MODES[number]>("UPI");
+  const [cardId, setCardId] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [showNewCat, setShowNewCat] = useState(false);
   const [busy, setBusy] = useState(false);
