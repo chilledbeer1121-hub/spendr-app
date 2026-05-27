@@ -111,13 +111,20 @@ function ExpensesPage() {
         <Card className="divide-y divide-border bg-card border-border">
           {expenses.map((e) => {
             const c = categories.find((c) => c.id === e.category_id);
+            const card = e.card_id ? cards.find((cc) => cc.id === e.card_id) : null;
             return (
               <div key={e.id} className="flex items-center gap-3 px-4 py-3">
                 <CategoryDot color={c?.color ?? "#64748b"} icon={c?.icon ?? "tag"} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <div className="font-medium text-sm truncate">{e.name}</div>
                     {e.recurring_id && <span className="text-[9px] uppercase tracking-wider text-primary bg-primary/10 rounded-full px-1.5 py-0.5">Auto</span>}
+                    {card && (
+                      <span className="text-[9px] uppercase tracking-wider rounded-full px-1.5 py-0.5 flex items-center gap-1" style={{ background: `${card.color}22`, color: card.color }}>
+                        <span className="size-1.5 rounded-full" style={{ background: card.color }} />
+                        {card.name}{card.last4 ? ` ••${card.last4}` : ""}
+                      </span>
+                    )}
                   </div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">
                     {format(parseISO(e.date), "MMM d")} · {c?.name} · {e.payment_mode}
