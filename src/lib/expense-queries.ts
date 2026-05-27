@@ -171,3 +171,18 @@ export function useSavings(userId: string | undefined) {
     },
   });
 }
+
+export function useCards(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["cards", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<CreditCard[]> => {
+      const { data, error } = await supabase
+        .from("cards")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as CreditCard[];
+    },
+  });
+}
