@@ -18,6 +18,7 @@ import { Route as MemoryRouteImport } from './routes/memory'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as ExpensesRouteImport } from './routes/expenses'
+import { Route as CardsRouteImport } from './routes/cards'
 import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -66,6 +67,11 @@ const ExpensesRoute = ExpensesRouteImport.update({
   path: '/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CardsRoute = CardsRouteImport.update({
+  id: '/cards',
+  path: '/cards',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AddRoute = AddRouteImport.update({
   id: '/add',
   path: '/add',
@@ -80,6 +86,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/cards': typeof CardsRoute
   '/expenses': typeof ExpensesRoute
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/cards': typeof CardsRoute
   '/expenses': typeof ExpensesRoute
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/cards': typeof CardsRoute
   '/expenses': typeof ExpensesRoute
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/add'
+    | '/cards'
     | '/expenses'
     | '/insights'
     | '/login'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/add'
+    | '/cards'
     | '/expenses'
     | '/insights'
     | '/login'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/add'
+    | '/cards'
     | '/expenses'
     | '/insights'
     | '/login'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddRoute: typeof AddRoute
+  CardsRoute: typeof CardsRoute
   ExpensesRoute: typeof ExpensesRoute
   InsightsRoute: typeof InsightsRoute
   LoginRoute: typeof LoginRoute
@@ -238,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cards': {
+      id: '/cards'
+      path: '/cards'
+      fullPath: '/cards'
+      preLoaderRoute: typeof CardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/add': {
       id: '/add'
       path: '/add'
@@ -258,6 +278,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddRoute: AddRoute,
+  CardsRoute: CardsRoute,
   ExpensesRoute: ExpensesRoute,
   InsightsRoute: InsightsRoute,
   LoginRoute: LoginRoute,
@@ -271,3 +292,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
