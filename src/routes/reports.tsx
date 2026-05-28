@@ -125,8 +125,11 @@ function ReportsPage() {
       <div className="flex items-end justify-between gap-3 mb-4">
         <div>
           <h1 className="font-display text-2xl font-bold">Reports</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{range.label}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {range.label} · {view === "payable" ? "Payable view" : "Spent view"}
+          </p>
         </div>
+        <SpendViewToggle />
       </div>
 
       <div className="-mx-4 px-4 mb-4 overflow-x-auto">
