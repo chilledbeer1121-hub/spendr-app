@@ -1,14 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth";
-import { useProfile, useThisMonthExpenses, useCategories } from "@/lib/expense-queries";
+import { useProfile, useExpenses, useCategories, useCards } from "@/lib/expense-queries";
 import { formatCurrency, pctOfSalary, savingRate } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CategoryDot } from "@/components/category-dot";
 import { SpendDonut } from "@/components/spend-donut";
 import { AppShell } from "@/components/app-shell";
-import { format, parseISO } from "date-fns";
+import { SpendViewToggle } from "@/components/spend-view-toggle";
+import { useSpendView, filterByView } from "@/lib/payable";
+import { format, parseISO, startOfMonth, endOfMonth, subMonths, addMonths } from "date-fns";
 import { ArrowRight, Plus, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -23,11 +25,23 @@ export const Route = createFileRoute("/")({
 function Dashboard() {
   const { user } = useAuth();
   const { data: profile } = useProfile(user?.id);
-  const { data: expenses = [] } = useThisMonthExpenses(user?.id);
+  // Pull a wider window so card expenses from previous months can be re-bucketed into "payable this month"
+  const { data: rawExpenses = [] } = useExpenses(user?.id, {
+    from: startOfMonth(subMonths(new Date(), 3)),
+    to: endOfMonth(addMonths(new Date(), 1)),
+  });
   const { data: categories = [] } = useCategories(user?.id);
+  const { data: cards = [] } = useCards(user?.id);
+  const [view] = useSpendView();
 
   const salary = profile?.monthly_salary ?? 0;
   const currency = profile?.currency ?? "INR";
+  const now = new Date();
+
+  const expenses = useMemo(
+    () => filterByView(rawExpenses, cards, view, startOfMonth(now), endOfMonth(now)),
+    [rawExpenses, cards, view],
+  );
 
   const stats = useMemo(() => {
     const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
@@ -54,6 +68,8 @@ function Dashboard() {
   const recent = expenses.slice(0, 7);
   const monthName = format(new Date(), "MMMM");
   const spentPct = salary > 0 ? Math.min(100, (stats.total / salary) * 100) : 0;
+  const spentLabel = view === "payable" ? "Payable this month" : "Spent this month";
+  const remainingLabel = view === "payable" ? "After bills due" : "Remaining";
 
   if (!profile) {
     return <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>;
@@ -62,7 +78,7 @@ function Dashboard() {
 
   return (
     <div className="px-4 pt-6 pb-4 md:px-8 md:pt-8 max-w-5xl mx-auto">
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex items-start justify-between gap-4 mb-4">
         <div>
           <p className="text-sm text-muted-foreground">{monthName}</p>
           <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight mt-0.5">
@@ -75,11 +91,18 @@ function Dashboard() {
         </div>
       </div>
 
+      <div className="flex items-center justify-between mb-3">
+        <SpendViewToggle />
+        <span className="text-[11px] text-muted-foreground">
+          {view === "payable" ? "Card spends counted on due date" : "Card spends counted on purchase date"}
+        </span>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-        <SummaryCard label="Spent this month" value={formatCurrency(stats.total, currency)} sub={`${pctOfSalary(stats.total, salary).toFixed(1)}% of salary`} tone="default" />
-        <SummaryCard label="Remaining" value={formatCurrency(stats.remaining, currency)} sub={`${savingRate(salary, stats.total).toFixed(0)}% saving rate`} tone="success" />
+        <SummaryCard label={spentLabel} value={formatCurrency(stats.total, currency)} sub={`${pctOfSalary(stats.total, salary).toFixed(1)}% of salary`} tone="default" />
+        <SummaryCard label={remainingLabel} value={formatCurrency(stats.remaining, currency)} sub={`${savingRate(salary, stats.total).toFixed(0)}% saving rate`} tone="success" />
         <SummaryCard label="Biggest category" value={stats.biggestCat?.name ?? "—"} sub={stats.biggestAmt ? formatCurrency(stats.biggestAmt, currency) : "Nothing yet"} tone="default" />
-        <SummaryCard label="Expenses" value={`${stats.count}`} sub="this month" tone="default" />
+        <SummaryCard label="Expenses" value={`${stats.count}`} sub={view === "payable" ? "due this month" : "this month"} tone="default" />
       </div>
 
       <Card className="mt-4 p-4 md:p-5 bg-card border-border">
@@ -91,7 +114,7 @@ function Dashboard() {
           <div className="h-full bg-gradient-to-r from-primary to-success transition-all" style={{ width: `${spentPct}%` }} />
         </div>
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground tabular-nums">
-          <span>{formatCurrency(stats.total, currency)} spent</span>
+          <span>{formatCurrency(stats.total, currency)} {view === "payable" ? "due" : "spent"}</span>
           <span>{formatCurrency(stats.remaining, currency)} left</span>
         </div>
       </Card>
@@ -107,7 +130,7 @@ function Dashboard() {
             <Link to="/add" className="text-primary font-medium">Log your first one →</Link>
           </div>
         ) : (
-          <SpendDonut data={donutData} centerLabel={formatCurrency(stats.total, currency)} centerSub="spent" currency={currency} />
+          <SpendDonut data={donutData} centerLabel={formatCurrency(stats.total, currency)} centerSub={view === "payable" ? "due" : "spent"} currency={currency} />
         )}
       </Card>
 
