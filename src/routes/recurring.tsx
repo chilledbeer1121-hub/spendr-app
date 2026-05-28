@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useRecurring, useCategories, useCards } from "@/lib/expense-queries";
+import { useRecurring, useCategories, useCards, type Recurring } from "@/lib/expense-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -10,12 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AppShell } from "@/components/app-shell";
 import { CategoryDot } from "@/components/category-dot";
 import { formatCurrency } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, Repeat, Trash2 } from "lucide-react";
+import { Plus, Repeat, Trash2, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 export const Route = createFileRoute("/recurring")({
@@ -31,6 +32,7 @@ function RecurringPage() {
   const { data: items = [] } = useRecurring(user?.id);
   const { data: categories = [] } = useCategories(user?.id);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Recurring | null>(null);
 
   const onDelete = async (id: string) => {
     if (!confirm("Stop this recurring plan? Past generated expenses are kept.")) return;
@@ -38,6 +40,11 @@ function RecurringPage() {
     if (error) return toast.error(error.message);
     toast.success("Recurring plan stopped");
     qc.invalidateQueries({ queryKey: ["recurring"] });
+  };
+
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["recurring"] });
+    qc.invalidateQueries({ queryKey: ["expenses"] });
   };
 
   const monthlyTotal = items.filter((i) => i.is_active).reduce((s, i) => s + Number(i.amount), 0);
@@ -55,7 +62,7 @@ function RecurringPage() {
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader><DialogTitle>New recurring expense</DialogTitle></DialogHeader>
-            <RecurringForm onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["recurring"] }); qc.invalidateQueries({ queryKey: ["expenses"] }); }} />
+            <RecurringForm onDone={() => { setOpen(false); refresh(); }} />
           </DialogContent>
         </Dialog>
       </div>
@@ -81,17 +88,25 @@ function RecurringPage() {
             return (
               <div key={r.id} className="flex items-center gap-3 px-4 py-3">
                 <CategoryDot color={c?.color ?? "#888"} icon={c?.icon ?? "tag"} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditing(r)}
+                  className="flex-1 min-w-0 text-left"
+                >
+                  <div className="flex items-center gap-2 flex-wrap">
                     <div className="font-medium text-sm truncate">{r.name}</div>
+                    {!r.is_active && <span className="text-[9px] uppercase tracking-wider text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">Paused</span>}
                     {ended && <span className="text-[9px] uppercase tracking-wider text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">Ended</span>}
                     {r.card_id && <span className="text-[9px] uppercase tracking-wider text-primary bg-primary/10 rounded-full px-1.5 py-0.5">Card</span>}
                   </div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">
                     Day {r.day_of_month} · {format(parseISO(r.start_date), "MMM yyyy")} → {format(parseISO(r.end_date), "MMM yyyy")} · {r.payment_mode}
                   </div>
-                </div>
+                </button>
                 <div className="text-sm font-semibold tabular-nums">{formatCurrency(Number(r.amount))}</div>
+                <Button variant="ghost" size="icon" onClick={() => setEditing(r)} className="text-muted-foreground hover:text-foreground">
+                  <Pencil className="size-4" />
+                </Button>
                 <Button variant="ghost" size="icon" onClick={() => onDelete(r.id)} className="text-muted-foreground hover:text-destructive">
                   <Trash2 className="size-4" />
                 </Button>
@@ -100,26 +115,42 @@ function RecurringPage() {
           })}
         </Card>
       )}
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Edit recurring expense</DialogTitle></DialogHeader>
+          {editing && (
+            <RecurringForm
+              initial={editing}
+              onDone={() => { setEditing(null); refresh(); }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function RecurringForm({ onDone }: { onDone: () => void }) {
+function RecurringForm({ initial, onDone }: { initial?: Recurring; onDone: () => void }) {
   const { user } = useAuth();
   const { data: categories = [] } = useCategories(user?.id);
   const { data: cards = [] } = useCards(user?.id);
-  const [name, setName] = useState("");
-  const [categoryId, setCategoryId] = useState<string>("");
-  const [amount, setAmount] = useState("");
-  const [paymentMode, setPaymentMode] = useState<typeof PAYMENT_MODES[number]>("EMI");
-  const [cardId, setCardId] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [name, setName] = useState(initial?.name ?? "");
+  const [categoryId, setCategoryId] = useState<string>(initial?.category_id ?? "");
+  const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
+  const [paymentMode, setPaymentMode] = useState<typeof PAYMENT_MODES[number]>(initial?.payment_mode ?? "EMI");
+  const [cardId, setCardId] = useState<string | null>(initial?.card_id ?? null);
+  const [startDate, setStartDate] = useState(initial?.start_date ?? new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(() => {
+    if (initial?.end_date) return initial.end_date;
     const d = new Date(); d.setFullYear(d.getFullYear() + 1); return d.toISOString().slice(0, 10);
   });
-  const [day, setDay] = useState("1");
-  const [note, setNote] = useState("");
+  const [day, setDay] = useState(initial ? String(initial.day_of_month) : "1");
+  const [note, setNote] = useState(initial?.note ?? "");
+  const [isActive, setIsActive] = useState(initial?.is_active ?? true);
   const [busy, setBusy] = useState(false);
+
+  const isEdit = !!initial;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,19 +162,29 @@ function RecurringForm({ onDone }: { onDone: () => void }) {
     if (!dom || dom < 1 || dom > 28) return toast.error("Day must be 1–28");
     if (endDate < startDate) return toast.error("End date before start");
     const onCard = paymentMode === "CARD" || paymentMode === "EMI";
-    if (onCard && cards.length > 0 && !cardId) {
-      // optional but encourage it
-    }
     setBusy(true);
-    const { data: ins, error } = await supabase.from("recurring_expenses").insert({
-      user_id: user!.id, name: name.trim(), category_id: categoryId, amount: amt,
-      payment_mode: paymentMode, start_date: startDate, end_date: endDate, day_of_month: dom,
-      note: note.trim() || null, card_id: onCard ? cardId : null,
-    }).select("id").single();
-    if (error || !ins) { setBusy(false); return toast.error(error?.message ?? "Failed"); }
+    const payload = {
+      name: name.trim(),
+      category_id: categoryId,
+      amount: amt,
+      payment_mode: paymentMode,
+      start_date: startDate,
+      end_date: endDate,
+      day_of_month: dom,
+      note: note.trim() || null,
+      card_id: onCard ? cardId : null,
+      is_active: isActive,
+    };
+    let err;
+    if (isEdit) {
+      ({ error: err } = await supabase.from("recurring_expenses").update(payload).eq("id", initial!.id));
+    } else {
+      ({ error: err } = await supabase.from("recurring_expenses").insert({ user_id: user!.id, ...payload }));
+    }
+    if (err) { setBusy(false); return toast.error(err.message); }
     await supabase.rpc("materialize_recurring_expenses", { _user_id: user!.id });
     setBusy(false);
-    toast.success("Recurring plan added");
+    toast.success(isEdit ? "Recurring plan updated" : "Recurring plan added");
     onDone();
   };
 
@@ -213,7 +254,18 @@ function RecurringForm({ onDone }: { onDone: () => void }) {
         <Label>Note (optional)</Label>
         <Textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
       </div>
-      <Button type="submit" className="w-full" disabled={busy}>{busy ? "Saving…" : "Save & generate"}</Button>
+      {isEdit && (
+        <div className="flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2">
+          <div>
+            <div className="text-sm font-medium">Active</div>
+            <div className="text-[11px] text-muted-foreground">Pause to stop auto-generating future expenses</div>
+          </div>
+          <Switch checked={isActive} onCheckedChange={setIsActive} />
+        </div>
+      )}
+      <Button type="submit" className="w-full" disabled={busy}>
+        {busy ? "Saving…" : isEdit ? "Save changes" : "Save & generate"}
+      </Button>
     </form>
   );
 }
