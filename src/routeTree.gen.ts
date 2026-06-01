@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VisualizationRouteImport } from './routes/visualization'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SavingsRouteImport } from './routes/savings'
@@ -22,6 +23,11 @@ import { Route as CardsRouteImport } from './routes/cards'
 import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VisualizationRoute = VisualizationRouteImport.update({
+  id: '/visualization',
+  path: '/visualization',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/savings': typeof SavingsRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/visualization': typeof VisualizationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/savings': typeof SavingsRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/visualization': typeof VisualizationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/savings': typeof SavingsRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/visualization': typeof VisualizationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/savings'
     | '/settings'
     | '/signup'
+    | '/visualization'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/savings'
     | '/settings'
     | '/signup'
+    | '/visualization'
   id:
     | '__root__'
     | '/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/savings'
     | '/settings'
     | '/signup'
+    | '/visualization'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,10 +196,18 @@ export interface RootRouteChildren {
   SavingsRoute: typeof SavingsRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
+  VisualizationRoute: typeof VisualizationRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/visualization': {
+      id: '/visualization'
+      path: '/visualization'
+      fullPath: '/visualization'
+      preLoaderRoute: typeof VisualizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   SavingsRoute: SavingsRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
+  VisualizationRoute: VisualizationRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
