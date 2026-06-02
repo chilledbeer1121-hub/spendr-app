@@ -45,6 +45,7 @@ function AddExpense() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paymentMode, setPaymentMode] = useState<typeof PAYMENT_MODES[number]>("UPI");
   const [cardId, setCardId] = useState<string | null>(null);
+  const [typeOverride, setTypeOverride] = useState<"NEED" | "WANT" | "EMI" | "INVESTMENT" | null>(null);
   const [note, setNote] = useState("");
   const [showNewCat, setShowNewCat] = useState(false);
   const [busy, setBusy] = useState(false);
