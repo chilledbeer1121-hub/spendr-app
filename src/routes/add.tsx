@@ -156,6 +156,29 @@ function AddExpense() {
           </div>
         </div>
 
+        <div className="space-y-1.5">
+          <Label>Classify as <span className="text-muted-foreground font-normal">(affects daily budget · Progress view)</span></Label>
+          <div className="flex flex-wrap gap-1.5">
+            {(["NEED", "WANT", "EMI", "INVESTMENT"] as const).map((t) => (
+              <button key={t} type="button" onClick={() => setTypeOverride(typeOverride === t ? null : t)}
+                className={cn("rounded-full px-3 py-1.5 text-xs font-medium transition-colors border-2",
+                  typeOverride === t ? "border-primary bg-primary/10 text-foreground" : "border-transparent bg-muted text-muted-foreground hover:text-foreground")}>
+                {t}
+              </button>
+            ))}
+            {(() => {
+              const cat = categories.find((c) => c.id === categoryId);
+              const effective = typeOverride ?? cat?.type;
+              if (!cat) return null;
+              return (
+                <span className="text-[11px] text-muted-foreground self-center ml-1">
+                  {typeOverride ? `Overrides category default (${cat.type})` : `Using category default · ${effective}`}
+                </span>
+              );
+            })()}
+          </div>
+        </div>
+
         {paymentMode === "CARD" && (
           <div className="space-y-1.5">
             <Label>Which card?</Label>
