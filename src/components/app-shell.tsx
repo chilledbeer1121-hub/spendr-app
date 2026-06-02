@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Plus, ListOrdered, BarChart3, Lightbulb, Wallet, Settings, LogOut,
   MoreHorizontal, Repeat, BookHeart, PiggyBank, CreditCard as CreditCardIcon,
-  PanelLeftClose, PanelLeftOpen, Network,
+  PanelLeftClose, PanelLeftOpen, Network, Gauge,
 } from "lucide-react";
 
 const primaryNav = [
@@ -20,6 +20,7 @@ const primaryNav = [
 ] as const;
 
 const moreNav = [
+  { to: "/progress", label: "Progress", icon: Gauge },
   { to: "/visualization", label: "Visualization", icon: Network },
   { to: "/cards", label: "Cards", icon: CreditCardIcon },
   { to: "/recurring", label: "Recurring (EMIs)", icon: Repeat },
