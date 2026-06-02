@@ -1,0 +1,1 @@
+ALTER TABLE public.expenses ADD COLUMN type_override TEXT CHECK (type_override IN ('NEED','WANT','EMI','INVESTMENT'));

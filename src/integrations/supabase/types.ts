@@ -116,6 +116,7 @@ export type Database = {
           note: string | null
           payment_mode: Database["public"]["Enums"]["payment_mode"]
           recurring_id: string | null
+          type_override: string | null
           updated_at: string
           user_id: string
         }
@@ -130,6 +131,7 @@ export type Database = {
           note?: string | null
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
           recurring_id?: string | null
+          type_override?: string | null
           updated_at?: string
           user_id: string
         }
@@ -144,6 +146,7 @@ export type Database = {
           note?: string | null
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
           recurring_id?: string | null
+          type_override?: string | null
           updated_at?: string
           user_id?: string
         }
