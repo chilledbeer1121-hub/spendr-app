@@ -20,6 +20,7 @@ const primaryNav = [
 ] as const;
 
 const moreNav = [
+  { to: "/progress", label: "Progress", icon: Gauge },
   { to: "/visualization", label: "Visualization", icon: Network },
   { to: "/cards", label: "Cards", icon: CreditCardIcon },
   { to: "/recurring", label: "Recurring (EMIs)", icon: Repeat },
