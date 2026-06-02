@@ -43,6 +43,7 @@ export type Profile = {
   name: string;
   email: string | null;
   monthly_salary: number;
+  daily_budget: number;
   currency: string;
 };
 
