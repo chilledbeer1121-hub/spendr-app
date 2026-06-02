@@ -65,6 +65,7 @@ function AddExpense() {
         setDate(data.date);
         setPaymentMode(data.payment_mode);
         setCardId(data.card_id ?? null);
+        setTypeOverride((data as any).type_override ?? null);
         setNote(data.note ?? "");
         setLoadedEdit(true);
       }
