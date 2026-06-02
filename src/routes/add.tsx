@@ -45,6 +45,7 @@ function AddExpense() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paymentMode, setPaymentMode] = useState<typeof PAYMENT_MODES[number]>("UPI");
   const [cardId, setCardId] = useState<string | null>(null);
+  const [typeOverride, setTypeOverride] = useState<"NEED" | "WANT" | "EMI" | "INVESTMENT" | null>(null);
   const [note, setNote] = useState("");
   const [showNewCat, setShowNewCat] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -64,6 +65,7 @@ function AddExpense() {
         setDate(data.date);
         setPaymentMode(data.payment_mode);
         setCardId(data.card_id ?? null);
+        setTypeOverride((data as any).type_override ?? null);
         setNote(data.note ?? "");
         setLoadedEdit(true);
       }
@@ -79,7 +81,7 @@ function AddExpense() {
     if (paymentMode === "CARD" && !cardId && cards.length > 0) return toast.error("Pick which card");
     setBusy(true);
     const finalCardId = paymentMode === "CARD" ? cardId : null;
-    const payload = { category_id: categoryId, name: name.trim(), amount: amt, date, payment_mode: paymentMode, note: note.trim() || null, card_id: finalCardId };
+    const payload = { category_id: categoryId, name: name.trim(), amount: amt, date, payment_mode: paymentMode, note: note.trim() || null, card_id: finalCardId, type_override: typeOverride };
     const { error } = isEdit
       ? await supabase.from("expenses").update(payload).eq("id", editId!)
       : await supabase.from("expenses").insert({ ...payload, user_id: user!.id });
@@ -151,6 +153,29 @@ function AddExpense() {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Classify as <span className="text-muted-foreground font-normal">(affects daily budget · Progress view)</span></Label>
+          <div className="flex flex-wrap gap-1.5">
+            {(["NEED", "WANT", "EMI", "INVESTMENT"] as const).map((t) => (
+              <button key={t} type="button" onClick={() => setTypeOverride(typeOverride === t ? null : t)}
+                className={cn("rounded-full px-3 py-1.5 text-xs font-medium transition-colors border-2",
+                  typeOverride === t ? "border-primary bg-primary/10 text-foreground" : "border-transparent bg-muted text-muted-foreground hover:text-foreground")}>
+                {t}
+              </button>
+            ))}
+            {(() => {
+              const cat = categories.find((c) => c.id === categoryId);
+              const effective = typeOverride ?? cat?.type;
+              if (!cat) return null;
+              return (
+                <span className="text-[11px] text-muted-foreground self-center ml-1">
+                  {typeOverride ? `Overrides category default (${cat.type})` : `Using category default · ${effective}`}
+                </span>
+              );
+            })()}
           </div>
         </div>
 

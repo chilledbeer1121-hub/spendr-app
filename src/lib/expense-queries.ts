@@ -21,6 +21,7 @@ export type Expense = {
   payment_mode: "UPI" | "CARD" | "CASH" | "NET_BANKING" | "EMI";
   recurring_id?: string | null;
   card_id?: string | null;
+  type_override?: "NEED" | "WANT" | "EMI" | "INVESTMENT" | null;
 };
 
 export type CreditCard = {
