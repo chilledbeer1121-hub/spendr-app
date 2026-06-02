@@ -192,7 +192,7 @@ function ProgressPage() {
               <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
               <RTooltip
                 contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                formatter={(v: number) => formatCurrency(v ?? 0, currency)}
+                formatter={(v) => formatCurrency(Number(v ?? 0), currency)}
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <ReferenceLine y={dailyBudget} stroke="hsl(var(--primary))" strokeDasharray="4 4" label={{ value: "Budget", fontSize: 10, fill: "hsl(var(--primary))" }} />

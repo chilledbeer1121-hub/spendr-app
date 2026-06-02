@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SavingsRouteImport } from './routes/savings'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RecurringRouteImport } from './routes/recurring'
+import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as MemoryRouteImport } from './routes/memory'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InsightsRouteImport } from './routes/insights'
@@ -51,6 +52,11 @@ const ReportsRoute = ReportsRouteImport.update({
 const RecurringRoute = RecurringRouteImport.update({
   id: '/recurring',
   path: '/recurring',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MemoryRoute = MemoryRouteImport.update({
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
   '/memory': typeof MemoryRoute
+  '/progress': typeof ProgressRoute
   '/recurring': typeof RecurringRoute
   '/reports': typeof ReportsRoute
   '/savings': typeof SavingsRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
   '/memory': typeof MemoryRoute
+  '/progress': typeof ProgressRoute
   '/recurring': typeof RecurringRoute
   '/reports': typeof ReportsRoute
   '/savings': typeof SavingsRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
   '/memory': typeof MemoryRoute
+  '/progress': typeof ProgressRoute
   '/recurring': typeof RecurringRoute
   '/reports': typeof ReportsRoute
   '/savings': typeof SavingsRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/login'
     | '/memory'
+    | '/progress'
     | '/recurring'
     | '/reports'
     | '/savings'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/login'
     | '/memory'
+    | '/progress'
     | '/recurring'
     | '/reports'
     | '/savings'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/login'
     | '/memory'
+    | '/progress'
     | '/recurring'
     | '/reports'
     | '/savings'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   InsightsRoute: typeof InsightsRoute
   LoginRoute: typeof LoginRoute
   MemoryRoute: typeof MemoryRoute
+  ProgressRoute: typeof ProgressRoute
   RecurringRoute: typeof RecurringRoute
   ReportsRoute: typeof ReportsRoute
   SavingsRoute: typeof SavingsRoute
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/recurring'
       fullPath: '/recurring'
       preLoaderRoute: typeof RecurringRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/memory': {
@@ -303,6 +323,7 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsRoute: InsightsRoute,
   LoginRoute: LoginRoute,
   MemoryRoute: MemoryRoute,
+  ProgressRoute: ProgressRoute,
   RecurringRoute: RecurringRoute,
   ReportsRoute: ReportsRoute,
   SavingsRoute: SavingsRoute,
