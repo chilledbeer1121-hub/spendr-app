@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Plus, ListOrdered, BarChart3, Lightbulb, Wallet, Settings, LogOut,
   MoreHorizontal, Repeat, BookHeart, PiggyBank, CreditCard as CreditCardIcon,
-  PanelLeftClose, PanelLeftOpen, Network,
+  PanelLeftClose, PanelLeftOpen, Network, Gauge,
 } from "lucide-react";
 
 const primaryNav = [
