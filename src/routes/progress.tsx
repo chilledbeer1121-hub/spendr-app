@@ -97,7 +97,7 @@ function ProgressPage() {
         future: d > new Date() && !isSameDay(d, new Date()),
       };
     });
-  }, [days, rawExpenses, discretionaryCatIds, view, cards, dailyBudget]);
+  }, [days, rawExpenses, catTypeById, view, cards, dailyBudget]);
 
   const summary = useMemo(() => {
     const past = perDay.filter((d) => !d.future);
