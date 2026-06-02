@@ -59,11 +59,18 @@ function ProgressPage() {
   const currency = profile?.currency ?? "INR";
   const { from, to } = useMemo(() => rangeFor(period, new Date()), [period]);
 
-  // Discretionary categories = NOT NEED, NOT EMI
-  const discretionaryCatIds = useMemo(
-    () => new Set(categories.filter((c) => c.type !== "NEED" && c.type !== "EMI").map((c) => c.id)),
-    [categories],
-  );
+  // Discretionary = effective type is not NEED and not EMI.
+  // Per-expense `type_override` wins over the category's default type.
+  const catTypeById = useMemo(() => {
+    const m = new Map<string, string>();
+    categories.forEach((c) => m.set(c.id, c.type));
+    return m;
+  }, [categories]);
+
+  const isDiscretionary = (e: typeof rawExpenses[number]) => {
+    const t = e.type_override ?? catTypeById.get(e.category_id);
+    return t !== "NEED" && t !== "EMI";
+  };
 
   // Build per-day buckets (only discretionary)
   const days = useMemo(() => eachDayOfInterval({ start: from, end: to }), [from, to]);
@@ -72,7 +79,7 @@ function ProgressPage() {
     const map = new Map<string, number>();
     days.forEach((d) => map.set(format(d, "yyyy-MM-dd"), 0));
     for (const e of rawExpenses) {
-      if (!discretionaryCatIds.has(e.category_id)) continue;
+      if (!isDiscretionary(e)) continue;
       const dateStr = view === "payable" ? payableDateFor(e, cards) : e.date;
       if (map.has(dateStr)) map.set(dateStr, (map.get(dateStr) ?? 0) + Number(e.amount));
     }
