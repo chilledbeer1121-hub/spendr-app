@@ -236,6 +236,7 @@ export type Database = {
         Row: {
           created_at: string
           currency: string
+          daily_budget: number
           email: string | null
           id: string
           monthly_salary: number
@@ -246,6 +247,7 @@ export type Database = {
         Insert: {
           created_at?: string
           currency?: string
+          daily_budget?: number
           email?: string | null
           id: string
           monthly_salary?: number
@@ -256,6 +258,7 @@ export type Database = {
         Update: {
           created_at?: string
           currency?: string
+          daily_budget?: number
           email?: string | null
           id?: string
           monthly_salary?: number
