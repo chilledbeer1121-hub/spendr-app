@@ -314,6 +314,46 @@ function ProgressPage() {
           </Table>
         </div>
       </Card>
+
+      <Dialog open={!!openDay} onOpenChange={(o) => !o && setOpenDay(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {openDay ? format(openDay.date, "EEEE, MMM d") : ""}
+            </DialogTitle>
+            <DialogDescription>
+              {openDay
+                ? `${openDay.expenses.length} discretionary ${openDay.expenses.length === 1 ? "expense" : "expenses"} • ${formatCurrency(openDay.spent, currency)} ${view === "payable" ? "payable" : "spent"}`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto -mx-1 px-1 space-y-2">
+            {openDay?.expenses
+              .slice()
+              .sort((a, b) => Number(b.amount) - Number(a.amount))
+              .map((e) => {
+                const cat = catById.get(e.category_id);
+                const card = e.card_id ? cards.find((c) => c.id === e.card_id) : null;
+                return (
+                  <div key={e.id} className="flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium truncate">{e.name || cat?.name || "Expense"}</div>
+                      <div className="text-[11px] text-muted-foreground truncate">
+                        {cat?.name ?? "—"} · {e.payment_mode}
+                        {card ? ` · ${card.name}` : ""}
+                        {view === "payable" && e.date !== openDay.key ? ` · spent ${format(parseISO(e.date), "MMM d")}` : ""}
+                      </div>
+                      {e.note && <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{e.note}</div>}
+                    </div>
+                    <div className="text-sm font-semibold tabular-nums whitespace-nowrap">
+                      {formatCurrency(Number(e.amount), currency)}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
