@@ -7,6 +7,7 @@ import { SpendViewToggle } from "@/components/spend-view-toggle";
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -14,7 +15,7 @@ import {
   startOfYear, endOfYear, eachDayOfInterval, format, parseISO, isSameDay, subMonths, addMonths, isToday,
 } from "date-fns";
 import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RTooltip, CartesianGrid, ReferenceLine, Legend,
+  ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, Tooltip as RTooltip, CartesianGrid, ReferenceLine, Legend,
 } from "recharts";
 import { TrendingDown, TrendingUp, Target, AlertCircle } from "lucide-react";
 
@@ -67,21 +68,38 @@ function ProgressPage() {
     return m;
   }, [categories]);
 
+  const catById = useMemo(() => {
+    const m = new Map<string, typeof categories[number]>();
+    categories.forEach((c) => m.set(c.id, c));
+    return m;
+  }, [categories]);
+
   const isDiscretionary = (e: typeof rawExpenses[number]) => {
+    // Explicitly drop EMI by payment_mode as well — Progress is for daily spend only.
+    if (e.payment_mode === "EMI") return false;
     const t = e.type_override ?? catTypeById.get(e.category_id);
     return t !== "NEED" && t !== "EMI";
   };
+
 
   // Build per-day buckets (only discretionary)
   const days = useMemo(() => eachDayOfInterval({ start: from, end: to }), [from, to]);
 
   const perDay = useMemo(() => {
     const map = new Map<string, number>();
-    days.forEach((d) => map.set(format(d, "yyyy-MM-dd"), 0));
+    const items = new Map<string, typeof rawExpenses>();
+    days.forEach((d) => {
+      const k = format(d, "yyyy-MM-dd");
+      map.set(k, 0);
+      items.set(k, []);
+    });
     for (const e of rawExpenses) {
       if (!isDiscretionary(e)) continue;
       const dateStr = view === "payable" ? payableDateFor(e, cards) : e.date;
-      if (map.has(dateStr)) map.set(dateStr, (map.get(dateStr) ?? 0) + Number(e.amount));
+      if (map.has(dateStr)) {
+        map.set(dateStr, (map.get(dateStr) ?? 0) + Number(e.amount));
+        items.get(dateStr)!.push(e);
+      }
     }
     return days.map((d) => {
       const key = format(d, "yyyy-MM-dd");
@@ -93,8 +111,9 @@ function ProgressPage() {
         key,
         spent,
         over,
-        diff, // positive = over, negative = saved
+        diff,
         future: d > new Date() && !isSameDay(d, new Date()),
+        expenses: items.get(key) ?? [],
       };
     });
   }, [days, rawExpenses, catTypeById, view, cards, dailyBudget]);
@@ -105,18 +124,23 @@ function ProgressPage() {
     const savings = past.filter((d) => !d.over && dailyBudget > 0).length;
     const totalSpent = past.reduce((s, d) => s + d.spent, 0);
     const totalBudget = dailyBudget * past.length;
-    const net = totalBudget - totalSpent; // positive = saved
+    const net = totalBudget - totalSpent;
     return { expensive, savings, totalSpent, totalBudget, net, dayCount: past.length };
   }, [perDay, dailyBudget]);
 
-  // Chart data
+  // Chart: only show past days so the line/area is continuous and visible.
   const chartData = useMemo(() => {
-    return perDay.map((d) => ({
-      label: format(d.date, period === "year" ? "MMM d" : "MMM d"),
-      spent: d.future ? null : Math.round(d.spent),
-      budget: dailyBudget,
-    }));
-  }, [perDay, dailyBudget, period]);
+    return perDay
+      .filter((d) => !d.future)
+      .map((d) => ({
+        label: format(d.date, "MMM d"),
+        spent: Math.round(d.spent),
+        budget: dailyBudget,
+      }));
+  }, [perDay, dailyBudget]);
+
+  const [openDay, setOpenDay] = useState<(typeof perDay)[number] | null>(null);
+
 
   if (!profile) {
     return <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>;
@@ -193,7 +217,13 @@ function ProgressPage() {
         </div>
         <div className="h-64 w-full">
           <ResponsiveContainer>
-            <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+            <ComposedChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+              <defs>
+                <linearGradient id="spentFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
               <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
@@ -203,8 +233,8 @@ function ProgressPage() {
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <ReferenceLine y={dailyBudget} stroke="hsl(var(--primary))" strokeDasharray="4 4" label={{ value: "Budget", fontSize: 10, fill: "hsl(var(--primary))" }} />
-              <Line type="monotone" dataKey="spent" name="Spent" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 2 }} activeDot={{ r: 4 }} connectNulls={false} />
-            </LineChart>
+              <Area type="monotone" dataKey="spent" name="Spent" stroke="hsl(var(--destructive))" strokeWidth={2} fill="url(#spentFill)" dot={{ r: 3, fill: "hsl(var(--destructive))" }} activeDot={{ r: 5 }} />
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </Card>
@@ -228,7 +258,14 @@ function ProgressPage() {
                 const pct = dailyBudget > 0 ? Math.min(200, (d.spent / dailyBudget) * 100) : 0;
                 const today = isToday(d.date);
                 return (
-                  <TableRow key={d.key} className={today ? "bg-primary/5" : ""}>
+                  <TableRow
+                    key={d.key}
+                    onClick={() => !d.future && d.expenses.length > 0 && setOpenDay(d)}
+                    className={cn(
+                      today ? "bg-primary/5" : "",
+                      !d.future && d.expenses.length > 0 && "cursor-pointer hover:bg-muted/50",
+                    )}
+                  >
                     <TableCell className="font-medium text-xs">
                       {format(d.date, "EEE, MMM d")}
                       {today && <span className="ml-1.5 text-[10px] text-primary">• today</span>}
@@ -277,6 +314,46 @@ function ProgressPage() {
           </Table>
         </div>
       </Card>
+
+      <Dialog open={!!openDay} onOpenChange={(o) => !o && setOpenDay(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {openDay ? format(openDay.date, "EEEE, MMM d") : ""}
+            </DialogTitle>
+            <DialogDescription>
+              {openDay
+                ? `${openDay.expenses.length} discretionary ${openDay.expenses.length === 1 ? "expense" : "expenses"} • ${formatCurrency(openDay.spent, currency)} ${view === "payable" ? "payable" : "spent"}`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto -mx-1 px-1 space-y-2">
+            {openDay?.expenses
+              .slice()
+              .sort((a, b) => Number(b.amount) - Number(a.amount))
+              .map((e) => {
+                const cat = catById.get(e.category_id);
+                const card = e.card_id ? cards.find((c) => c.id === e.card_id) : null;
+                return (
+                  <div key={e.id} className="flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium truncate">{e.name || cat?.name || "Expense"}</div>
+                      <div className="text-[11px] text-muted-foreground truncate">
+                        {cat?.name ?? "—"} · {e.payment_mode}
+                        {card ? ` · ${card.name}` : ""}
+                        {view === "payable" && e.date !== openDay.key ? ` · spent ${format(parseISO(e.date), "MMM d")}` : ""}
+                      </div>
+                      {e.note && <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{e.note}</div>}
+                    </div>
+                    <div className="text-sm font-semibold tabular-nums whitespace-nowrap">
+                      {formatCurrency(Number(e.amount), currency)}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
