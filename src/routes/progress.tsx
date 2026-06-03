@@ -87,11 +87,19 @@ function ProgressPage() {
 
   const perDay = useMemo(() => {
     const map = new Map<string, number>();
-    days.forEach((d) => map.set(format(d, "yyyy-MM-dd"), 0));
+    const items = new Map<string, typeof rawExpenses>();
+    days.forEach((d) => {
+      const k = format(d, "yyyy-MM-dd");
+      map.set(k, 0);
+      items.set(k, []);
+    });
     for (const e of rawExpenses) {
       if (!isDiscretionary(e)) continue;
       const dateStr = view === "payable" ? payableDateFor(e, cards) : e.date;
-      if (map.has(dateStr)) map.set(dateStr, (map.get(dateStr) ?? 0) + Number(e.amount));
+      if (map.has(dateStr)) {
+        map.set(dateStr, (map.get(dateStr) ?? 0) + Number(e.amount));
+        items.get(dateStr)!.push(e);
+      }
     }
     return days.map((d) => {
       const key = format(d, "yyyy-MM-dd");
@@ -103,8 +111,9 @@ function ProgressPage() {
         key,
         spent,
         over,
-        diff, // positive = over, negative = saved
+        diff,
         future: d > new Date() && !isSameDay(d, new Date()),
+        expenses: items.get(key) ?? [],
       };
     });
   }, [days, rawExpenses, catTypeById, view, cards, dailyBudget]);
@@ -115,18 +124,23 @@ function ProgressPage() {
     const savings = past.filter((d) => !d.over && dailyBudget > 0).length;
     const totalSpent = past.reduce((s, d) => s + d.spent, 0);
     const totalBudget = dailyBudget * past.length;
-    const net = totalBudget - totalSpent; // positive = saved
+    const net = totalBudget - totalSpent;
     return { expensive, savings, totalSpent, totalBudget, net, dayCount: past.length };
   }, [perDay, dailyBudget]);
 
-  // Chart data
+  // Chart: only show past days so the line/area is continuous and visible.
   const chartData = useMemo(() => {
-    return perDay.map((d) => ({
-      label: format(d.date, period === "year" ? "MMM d" : "MMM d"),
-      spent: d.future ? null : Math.round(d.spent),
-      budget: dailyBudget,
-    }));
-  }, [perDay, dailyBudget, period]);
+    return perDay
+      .filter((d) => !d.future)
+      .map((d) => ({
+        label: format(d.date, "MMM d"),
+        spent: Math.round(d.spent),
+        budget: dailyBudget,
+      }));
+  }, [perDay, dailyBudget]);
+
+  const [openDay, setOpenDay] = useState<(typeof perDay)[number] | null>(null);
+
 
   if (!profile) {
     return <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>;
