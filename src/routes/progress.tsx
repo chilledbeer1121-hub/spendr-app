@@ -68,10 +68,19 @@ function ProgressPage() {
     return m;
   }, [categories]);
 
+  const catById = useMemo(() => {
+    const m = new Map<string, typeof categories[number]>();
+    categories.forEach((c) => m.set(c.id, c));
+    return m;
+  }, [categories]);
+
   const isDiscretionary = (e: typeof rawExpenses[number]) => {
+    // Explicitly drop EMI by payment_mode as well — Progress is for daily spend only.
+    if (e.payment_mode === "EMI") return false;
     const t = e.type_override ?? catTypeById.get(e.category_id);
     return t !== "NEED" && t !== "EMI";
   };
+
 
   // Build per-day buckets (only discretionary)
   const days = useMemo(() => eachDayOfInterval({ start: from, end: to }), [from, to]);
