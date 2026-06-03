@@ -258,7 +258,14 @@ function ProgressPage() {
                 const pct = dailyBudget > 0 ? Math.min(200, (d.spent / dailyBudget) * 100) : 0;
                 const today = isToday(d.date);
                 return (
-                  <TableRow key={d.key} className={today ? "bg-primary/5" : ""}>
+                  <TableRow
+                    key={d.key}
+                    onClick={() => !d.future && d.expenses.length > 0 && setOpenDay(d)}
+                    className={cn(
+                      today ? "bg-primary/5" : "",
+                      !d.future && d.expenses.length > 0 && "cursor-pointer hover:bg-muted/50",
+                    )}
+                  >
                     <TableCell className="font-medium text-xs">
                       {format(d.date, "EEE, MMM d")}
                       {today && <span className="ml-1.5 text-[10px] text-primary">• today</span>}
