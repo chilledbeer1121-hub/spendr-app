@@ -7,6 +7,7 @@ import { SpendViewToggle } from "@/components/spend-view-toggle";
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -14,7 +15,7 @@ import {
   startOfYear, endOfYear, eachDayOfInterval, format, parseISO, isSameDay, subMonths, addMonths, isToday,
 } from "date-fns";
 import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RTooltip, CartesianGrid, ReferenceLine, Legend,
+  ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, Tooltip as RTooltip, CartesianGrid, ReferenceLine, Legend,
 } from "recharts";
 import { TrendingDown, TrendingUp, Target, AlertCircle } from "lucide-react";
 
