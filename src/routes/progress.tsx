@@ -217,7 +217,13 @@ function ProgressPage() {
         </div>
         <div className="h-64 w-full">
           <ResponsiveContainer>
-            <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+            <ComposedChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+              <defs>
+                <linearGradient id="spentFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
               <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
@@ -227,8 +233,8 @@ function ProgressPage() {
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <ReferenceLine y={dailyBudget} stroke="hsl(var(--primary))" strokeDasharray="4 4" label={{ value: "Budget", fontSize: 10, fill: "hsl(var(--primary))" }} />
-              <Line type="monotone" dataKey="spent" name="Spent" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 2 }} activeDot={{ r: 4 }} connectNulls={false} />
-            </LineChart>
+              <Area type="monotone" dataKey="spent" name="Spent" stroke="hsl(var(--destructive))" strokeWidth={2} fill="url(#spentFill)" dot={{ r: 3, fill: "hsl(var(--destructive))" }} activeDot={{ r: 5 }} />
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </Card>
