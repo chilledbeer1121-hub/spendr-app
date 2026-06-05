@@ -18,6 +18,7 @@ import { Route as RecurringRouteImport } from './routes/recurring'
 import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as MemoryRouteImport } from './routes/memory'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InvestingRouteImport } from './routes/investing'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as CardsRouteImport } from './routes/cards'
@@ -69,6 +70,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvestingRoute = InvestingRouteImport.update({
+  id: '/investing',
+  path: '/investing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InsightsRoute = InsightsRouteImport.update({
   id: '/insights',
   path: '/insights',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/cards': typeof CardsRoute
   '/expenses': typeof ExpensesRoute
   '/insights': typeof InsightsRoute
+  '/investing': typeof InvestingRoute
   '/login': typeof LoginRoute
   '/memory': typeof MemoryRoute
   '/progress': typeof ProgressRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/cards': typeof CardsRoute
   '/expenses': typeof ExpensesRoute
   '/insights': typeof InsightsRoute
+  '/investing': typeof InvestingRoute
   '/login': typeof LoginRoute
   '/memory': typeof MemoryRoute
   '/progress': typeof ProgressRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/cards': typeof CardsRoute
   '/expenses': typeof ExpensesRoute
   '/insights': typeof InsightsRoute
+  '/investing': typeof InvestingRoute
   '/login': typeof LoginRoute
   '/memory': typeof MemoryRoute
   '/progress': typeof ProgressRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/cards'
     | '/expenses'
     | '/insights'
+    | '/investing'
     | '/login'
     | '/memory'
     | '/progress'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/cards'
     | '/expenses'
     | '/insights'
+    | '/investing'
     | '/login'
     | '/memory'
     | '/progress'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/cards'
     | '/expenses'
     | '/insights'
+    | '/investing'
     | '/login'
     | '/memory'
     | '/progress'
@@ -201,6 +213,7 @@ export interface RootRouteChildren {
   CardsRoute: typeof CardsRoute
   ExpensesRoute: typeof ExpensesRoute
   InsightsRoute: typeof InsightsRoute
+  InvestingRoute: typeof InvestingRoute
   LoginRoute: typeof LoginRoute
   MemoryRoute: typeof MemoryRoute
   ProgressRoute: typeof ProgressRoute
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/investing': {
+      id: '/investing'
+      path: '/investing'
+      fullPath: '/investing'
+      preLoaderRoute: typeof InvestingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/insights': {
       id: '/insights'
       path: '/insights'
@@ -321,6 +341,7 @@ const rootRouteChildren: RootRouteChildren = {
   CardsRoute: CardsRoute,
   ExpensesRoute: ExpensesRoute,
   InsightsRoute: InsightsRoute,
+  InvestingRoute: InvestingRoute,
   LoginRoute: LoginRoute,
   MemoryRoute: MemoryRoute,
   ProgressRoute: ProgressRoute,
@@ -334,3 +355,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
