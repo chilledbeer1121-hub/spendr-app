@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      brokers: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cards: {
         Row: {
           billing_day: number
@@ -163,7 +187,8 @@ export type Database = {
       investments: {
         Row: {
           amount: number
-          broker: string
+          broker: string | null
+          broker_id: string | null
           created_at: string
           date: string
           id: string
@@ -173,7 +198,8 @@ export type Database = {
         }
         Insert: {
           amount: number
-          broker: string
+          broker?: string | null
+          broker_id?: string | null
           created_at?: string
           date?: string
           id?: string
@@ -183,7 +209,8 @@ export type Database = {
         }
         Update: {
           amount?: number
-          broker?: string
+          broker?: string | null
+          broker_id?: string | null
           created_at?: string
           date?: string
           id?: string
@@ -191,7 +218,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "investments_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       memory_entries: {
         Row: {
