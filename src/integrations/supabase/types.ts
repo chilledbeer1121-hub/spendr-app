@@ -160,6 +160,39 @@ export type Database = {
           },
         ]
       }
+      investments: {
+        Row: {
+          amount: number
+          broker: string
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          broker: string
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          broker?: string
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       memory_entries: {
         Row: {
           amount: number
