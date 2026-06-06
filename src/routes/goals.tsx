@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { AppShell } from "@/components/app-shell";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,7 @@ import { Target, Trash2, ChevronLeft, ChevronRight, Check, X } from "lucide-reac
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/goals")({
-  component: GoalsPage,
+  component: () => <AppShell><GoalsPage /></AppShell>,
   errorComponent: ({ error }) => (
     <div className="p-6 text-sm text-destructive">{error.message}</div>
   ),
