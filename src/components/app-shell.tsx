@@ -9,8 +9,9 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Plus, ListOrdered, BarChart3, Lightbulb, Wallet, Settings, LogOut,
   MoreHorizontal, Repeat, BookHeart, PiggyBank, CreditCard as CreditCardIcon,
-  PanelLeftClose, PanelLeftOpen, Network, Gauge, TrendingUp,
+  PanelLeftClose, PanelLeftOpen, Network, Gauge, TrendingUp, Target,
 } from "lucide-react";
+import { DailyGoalReminder } from "@/components/daily-goal-reminder";
 
 const primaryNav = [
   { to: "/", label: "Home", icon: LayoutDashboard },
@@ -21,6 +22,7 @@ const primaryNav = [
 
 const moreNav = [
   { to: "/progress", label: "Progress", icon: Gauge },
+  { to: "/goals", label: "Goals", icon: Target },
   { to: "/visualization", label: "Visualization", icon: Network },
   { to: "/cards", label: "Cards", icon: CreditCardIcon },
   { to: "/recurring", label: "Recurring (EMIs)", icon: Repeat },
@@ -217,6 +219,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Sheet>
           </div>
         </nav>
+        <DailyGoalReminder />
       </div>
     </TooltipProvider>
   );
