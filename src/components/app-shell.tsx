@@ -219,6 +219,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Sheet>
           </div>
         </nav>
+        <DailyGoalReminder />
       </div>
     </TooltipProvider>
   );
