@@ -69,9 +69,10 @@
   --popover: #FEFCF9;             /* modals, popovers (neon_white.25) */
   --popover-foreground: #0F0F0C;
 
-  /* Primary — neon lime */
-  --primary: #C6F25C;             /* primary.300 — brand fill */
-  --primary-foreground: #0F0F0C;  /* dark ink on lime */
+  /* Primary — deep teal (money/growth, readable on cream) */
+  --primary: #0F766E;             /* teal-700 — brand fill */
+  --primary-foreground: #FBF7F2;  /* cream on teal */
+
 
   --secondary: #EDE8E1;           /* warm subtle (neon_white.200) */
   --secondary-foreground: #0F0F0C;
