@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useProfile, useExpenses, useCategories, useCards } from "@/lib/expense-queries";
-import { useSpendView, payableDateFor } from "@/lib/payable";
+import { useSpendView, payableDateFor, useIncludeRecurring } from "@/lib/payable";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
@@ -49,6 +49,7 @@ function ProgressPage() {
   const { data: cards = [] } = useCards(user?.id);
   const [period, setPeriod] = useState<Period>("month");
   const [view] = useSpendView();
+  const [includeRec] = useIncludeRecurring();
 
   // Wide pull so payable-mode card bills bucket correctly
   const { data: rawExpenses = [] } = useExpenses(user?.id, {
@@ -77,6 +78,7 @@ function ProgressPage() {
   const isDiscretionary = (e: typeof rawExpenses[number]) => {
     // Explicitly drop EMI by payment_mode as well — Progress is for daily spend only.
     if (e.payment_mode === "EMI") return false;
+    if (!includeRec && e.recurring_id) return false;
     const t = e.type_override ?? catTypeById.get(e.category_id);
     return t !== "NEED" && t !== "EMI";
   };

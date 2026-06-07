@@ -5,6 +5,7 @@ import type { Expense, CreditCard } from "./expense-queries";
 export type SpendView = "spent" | "payable";
 
 const KEY = "spendr:viewMode";
+const REC_KEY = "spendr:includeRecurring";
 
 export function useSpendView(): [SpendView, (v: SpendView) => void] {
   const [view, setView] = useState<SpendView>(() => {
@@ -21,10 +22,38 @@ export function useSpendView(): [SpendView, (v: SpendView) => void] {
   const set = (v: SpendView) => {
     localStorage.setItem(KEY, v);
     setView(v);
-    // notify same-tab listeners
     window.dispatchEvent(new StorageEvent("storage", { key: KEY, newValue: v }));
   };
   return [view, set];
+}
+
+export function useIncludeRecurring(): [boolean, (v: boolean) => void] {
+  const [on, setOn] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const raw = localStorage.getItem(REC_KEY);
+    return raw === null ? true : raw === "1";
+  });
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === REC_KEY && e.newValue !== null) setOn(e.newValue === "1");
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+  const set = (v: boolean) => {
+    localStorage.setItem(REC_KEY, v ? "1" : "0");
+    setOn(v);
+    window.dispatchEvent(new StorageEvent("storage", { key: REC_KEY, newValue: v ? "1" : "0" }));
+  };
+  return [on, set];
+}
+
+export function applyRecurringToggle<T extends { recurring_id?: string | null }>(
+  expenses: T[],
+  include: boolean,
+): T[] {
+  if (include) return expenses;
+  return expenses.filter((e) => !e.recurring_id);
 }
 
 /**

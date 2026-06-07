@@ -9,7 +9,7 @@ import { CategoryDot } from "@/components/category-dot";
 import { SpendDonut } from "@/components/spend-donut";
 import { AppShell } from "@/components/app-shell";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
-import { useSpendView, filterByView } from "@/lib/payable";
+import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle } from "@/lib/payable";
 import { format, parseISO, startOfMonth, endOfMonth, subMonths, addMonths } from "date-fns";
 import { ArrowRight, Plus, Sparkles } from "lucide-react";
 
@@ -33,14 +33,15 @@ function Dashboard() {
   const { data: categories = [] } = useCategories(user?.id);
   const { data: cards = [] } = useCards(user?.id);
   const [view] = useSpendView();
+  const [includeRec] = useIncludeRecurring();
 
   const salary = profile?.monthly_salary ?? 0;
   const currency = profile?.currency ?? "INR";
   const now = new Date();
 
   const expenses = useMemo(
-    () => filterByView(rawExpenses, cards, view, startOfMonth(now), endOfMonth(now)),
-    [rawExpenses, cards, view],
+    () => filterByView(applyRecurringToggle(rawExpenses, includeRec), cards, view, startOfMonth(now), endOfMonth(now)),
+    [rawExpenses, cards, view, includeRec],
   );
 
   const stats = useMemo(() => {

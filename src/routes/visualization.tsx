@@ -16,7 +16,7 @@ import {
 import {
   ResponsiveContainer, Treemap, Tooltip, Sankey, Layer, Rectangle,
 } from "recharts";
-import { useSpendView, filterByView } from "@/lib/payable";
+import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle } from "@/lib/payable";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
 
 export const Route = createFileRoute("/visualization")({
@@ -53,6 +53,7 @@ function VizPage() {
   const { data: cards = [] } = useCards(user?.id);
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
   const [view] = useSpendView();
+  const [includeRec] = useIncludeRecurring();
   const range = rangeFor(rangeKey);
   const fetchFrom = startOfMonth(subMonths(range.from, 3));
   const fetchTo = endOfMonth(addMonths(range.to, 2));
@@ -60,8 +61,8 @@ function VizPage() {
   const currency = profile?.currency ?? "INR";
 
   const expenses = useMemo(
-    () => filterByView(rawExpenses, cards, view, range.from, range.to),
-    [rawExpenses, cards, view, range.from, range.to]
+    () => filterByView(applyRecurringToggle(rawExpenses, includeRec), cards, view, range.from, range.to),
+    [rawExpenses, cards, view, includeRec, range.from, range.to]
   );
   const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
 
