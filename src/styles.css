@@ -80,7 +80,7 @@
   --muted: #EDE8E1;               /* hover / soft fills */
   --muted-foreground: #6B6256;    /* ink.3 — meta text */
 
-  --accent: #E9F99C;              /* primary.100 — tinted accent bg */
+  --accent: #CCE7E3;              /* teal-tinted accent bg */
   --accent-foreground: #0F0F0C;
 
   --destructive: #F04438;
