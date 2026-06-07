@@ -69,9 +69,10 @@
   --popover: #FEFCF9;             /* modals, popovers (neon_white.25) */
   --popover-foreground: #0F0F0C;
 
-  /* Primary — neon lime */
-  --primary: #C6F25C;             /* primary.300 — brand fill */
-  --primary-foreground: #0F0F0C;  /* dark ink on lime */
+  /* Primary — deep teal (money/growth, readable on cream) */
+  --primary: #0F766E;             /* teal-700 — brand fill */
+  --primary-foreground: #FBF7F2;  /* cream on teal */
+
 
   --secondary: #EDE8E1;           /* warm subtle (neon_white.200) */
   --secondary-foreground: #0F0F0C;
@@ -79,7 +80,7 @@
   --muted: #EDE8E1;               /* hover / soft fills */
   --muted-foreground: #6B6256;    /* ink.3 — meta text */
 
-  --accent: #E9F99C;              /* primary.100 — tinted accent bg */
+  --accent: #CCE7E3;              /* teal-tinted accent bg */
   --accent-foreground: #0F0F0C;
 
   --destructive: #F04438;
@@ -87,7 +88,7 @@
 
   --border: #E1DAD0;              /* neon_white.300 */
   --input: #E1DAD0;
-  --ring: #9FCC2B;                /* primary.500 — focus ring strong */
+  --ring: #0F766E;                /* teal-700 — focus ring */
 
   --success: #12B76A;
   --warning: #F79009;
@@ -100,15 +101,16 @@
   --investment: #12B76A;          /* green.500 */
 
   /* Charts — vivid, distinct on cream */
-  --chart-1: #9FCC2B;             /* lime (primary.500) */
+  --chart-1: #0F766E;             /* teal (primary) */
   --chart-2: #2E90FA;             /* blue */
   --chart-3: #F79009;             /* amber */
   --chart-4: #9E77ED;             /* violet */
   --chart-5: #F63D68;             /* rose */
 
-  --gradient-primary: linear-gradient(135deg, #C6F25C, #9FCC2B);
+  --gradient-primary: linear-gradient(135deg, #14B8A6, #0F766E);
   --gradient-card: linear-gradient(160deg, #FBF7F2, #F7F3EF);
-  --shadow-glow: 0 0 32px -8px rgba(159, 204, 43, 0.35);
+  --shadow-glow: 0 0 32px -8px rgba(15, 118, 110, 0.35);
+
   --shadow-card: 0 1px 2px rgba(15, 15, 12, 0.04), 0 8px 24px -12px rgba(15, 15, 12, 0.08);
 }
 
@@ -119,19 +121,20 @@
   --card-foreground: #E8E7E1;
   --popover: #262624;
   --popover-foreground: #E8E7E1;
-  --primary: #C6F25C;
+  --primary: #2DD4BF;
   --primary-foreground: #0F0F0C;
   --secondary: #262624;
   --secondary-foreground: #E8E7E1;
   --muted: #262624;
   --muted-foreground: #97968F;
-  --accent: #3A362E;
+  --accent: #1F3A38;
   --accent-foreground: #E8E7E1;
   --destructive: #F04438;
   --destructive-foreground: #FFFFFF;
   --border: #2A2A28;
   --input: #2A2A28;
-  --ring: #C6F25C;
+  --ring: #2DD4BF;
+
 }
 
 @layer base {
