@@ -101,15 +101,16 @@
   --investment: #12B76A;          /* green.500 */
 
   /* Charts — vivid, distinct on cream */
-  --chart-1: #9FCC2B;             /* lime (primary.500) */
+  --chart-1: #0F766E;             /* teal (primary) */
   --chart-2: #2E90FA;             /* blue */
   --chart-3: #F79009;             /* amber */
   --chart-4: #9E77ED;             /* violet */
   --chart-5: #F63D68;             /* rose */
 
-  --gradient-primary: linear-gradient(135deg, #C6F25C, #9FCC2B);
+  --gradient-primary: linear-gradient(135deg, #14B8A6, #0F766E);
   --gradient-card: linear-gradient(160deg, #FBF7F2, #F7F3EF);
-  --shadow-glow: 0 0 32px -8px rgba(159, 204, 43, 0.35);
+  --shadow-glow: 0 0 32px -8px rgba(15, 118, 110, 0.35);
+
   --shadow-card: 0 1px 2px rgba(15, 15, 12, 0.04), 0 8px 24px -12px rgba(15, 15, 12, 0.08);
 }
 
