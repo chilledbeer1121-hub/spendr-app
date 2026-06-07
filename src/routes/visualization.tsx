@@ -16,7 +16,7 @@ import {
 import {
   ResponsiveContainer, Treemap, Tooltip, Sankey, Layer, Rectangle,
 } from "recharts";
-import { useSpendView, filterByView } from "@/lib/payable";
+import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle } from "@/lib/payable";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
 
 export const Route = createFileRoute("/visualization")({

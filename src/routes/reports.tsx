@@ -9,7 +9,7 @@ import { AppShell } from "@/components/app-shell";
 import { CategoryDot } from "@/components/category-dot";
 import { SpendDonut } from "@/components/spend-donut";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
-import { useSpendView, filterByView } from "@/lib/payable";
+import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle } from "@/lib/payable";
 import { cn } from "@/lib/utils";
 import {
   startOfMonth, endOfMonth, subMonths, startOfYear, format, parseISO, addMonths,
@@ -58,20 +58,22 @@ function ReportsPage() {
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
   const [drillCategoryId, setDrillCategoryId] = useState<string | null>(null);
   const [view] = useSpendView();
+  const [includeRec] = useIncludeRecurring();
   const range = rangeFor(rangeKey);
   // Widen the fetch window so "payable" view can pull card spends that fall due in/out of the range.
   const fetchFrom = range.from ? startOfMonth(subMonths(range.from, 3)) : undefined;
   const fetchTo = range.to ? endOfMonth(addMonths(range.to, 2)) : undefined;
   const { data: rawExpenses = [] } = useExpenses(user?.id, { from: fetchFrom, to: fetchTo });
   const { data: cards = [] } = useCards(user?.id);
-  const { data: trendExpenses = [] } = useExpenses(user?.id, { from: startOfMonth(subMonths(new Date(), 5)) });
+  const { data: rawTrendExpenses = [] } = useExpenses(user?.id, { from: startOfMonth(subMonths(new Date(), 5)) });
   const currency = profile?.currency ?? "INR";
   const salary = profile?.monthly_salary ?? 0;
 
   const expenses = useMemo(() => {
-    if (!range.from || !range.to) return rawExpenses;
-    return filterByView(rawExpenses, cards, view, range.from, range.to);
-  }, [rawExpenses, cards, view, range.from, range.to]);
+    if (!range.from || !range.to) return applyRecurringToggle(rawExpenses, includeRec);
+    return filterByView(applyRecurringToggle(rawExpenses, includeRec), cards, view, range.from, range.to);
+  }, [rawExpenses, cards, view, includeRec, range.from, range.to]);
+  const trendExpenses = useMemo(() => applyRecurringToggle(rawTrendExpenses, includeRec), [rawTrendExpenses, includeRec]);
 
   const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
 
