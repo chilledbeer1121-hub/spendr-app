@@ -157,14 +157,14 @@ function ReportsPage() {
       .slice(0, 5);
     const sum = (arr: typeof includedExpenses) => arr.reduce((s, e) => s + Number(e.amount), 0);
     return {
-      want: { count: wantItems.length, total: sum(wantItems) },
-      need: { count: needItems.length, total: sum(needItems) },
-      big: { count: big.length, total: sum(big) },
-      small: { count: small.length, total: sum(small) },
-      weekend: { count: weekendItems.length, total: sum(weekendItems) },
-      card: { count: cardItems.length, total: sum(cardItems) },
-      cash: { count: cashItems.length, total: sum(cashItems) },
-      night: { count: nightItems.length, total: sum(nightItems) },
+      want: { count: wantItems.length, total: sum(wantItems), items: wantItems },
+      need: { count: needItems.length, total: sum(needItems), items: needItems },
+      big: { count: big.length, total: sum(big), items: big },
+      small: { count: small.length, total: sum(small), items: small },
+      weekend: { count: weekendItems.length, total: sum(weekendItems), items: weekendItems },
+      card: { count: cardItems.length, total: sum(cardItems), items: cardItems },
+      cash: { count: cashItems.length, total: sum(cashItems), items: cashItems },
+      night: { count: nightItems.length, total: sum(nightItems), items: nightItems },
       repeats,
       avg: includedExpenses.length ? sum(includedExpenses) / includedExpenses.length : 0,
       max: includedExpenses.reduce((m, e) => (Number(e.amount) > m ? Number(e.amount) : m), 0),
