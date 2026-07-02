@@ -83,7 +83,13 @@ function ReportsPage() {
   }, [rawExpenses, cards, view, includeRec, range.from, range.to]);
   const trendExpenses = useMemo(() => applyRecurringToggle(rawTrendExpenses, includeRec), [rawTrendExpenses, includeRec]);
 
-  const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
+  const includedExpenses = useMemo(
+    () => expenses.filter((e) => !excludedCats.has(e.category_id)),
+    [expenses, excludedCats],
+  );
+  const total = includedExpenses.reduce((s, e) => s + Number(e.amount), 0);
+  const grandTotal = expenses.reduce((s, e) => s + Number(e.amount), 0);
+  const excludedTotal = grandTotal - total;
 
   const byCategory = useMemo(() => {
     const m = new Map<string, { amount: number; count: number }>();
@@ -103,10 +109,10 @@ function ReportsPage() {
 
   const byMode = useMemo(() => {
     const m = new Map<string, number>();
-    expenses.forEach((e) => m.set(e.payment_mode, (m.get(e.payment_mode) ?? 0) + Number(e.amount)));
+    includedExpenses.forEach((e) => m.set(e.payment_mode, (m.get(e.payment_mode) ?? 0) + Number(e.amount)));
     const PALETTE: Record<string, string> = { UPI: "#3B82F6", CARD: "#F59E0B", CASH: "#10B981", NET_BANKING: "#8B5CF6", EMI: "#EF4444" };
     return Array.from(m.entries()).map(([id, amount]) => ({ id, name: id, amount, color: PALETTE[id] ?? "#888" }));
-  }, [expenses]);
+  }, [includedExpenses]);
 
   const byType = useMemo(() => {
     const m: Record<string, number> = { NEED: 0, WANT: 0, EMI: 0, INVESTMENT: 0 };
