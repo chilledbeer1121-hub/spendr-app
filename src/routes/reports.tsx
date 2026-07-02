@@ -331,6 +331,44 @@ function ReportsPage() {
         </div>
       </Card>
 
+      <Card className="mt-4 p-4 md:p-5 bg-card border-border">
+        <div className="flex items-center gap-2 mb-3">
+          <Eye className="h-4 w-4 text-primary" />
+          <h2 className="font-display text-base font-semibold">Spy Mode</h2>
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">quick x-rays</span>
+        </div>
+        {includedExpenses.length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">No data in this range.</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <SpyTile label="WANT spending" amount={spy.want.total} count={spy.want.count} currency={currency} accent="#F59E0B" hint={total > 0 ? `${((spy.want.total / total) * 100).toFixed(0)}% of total` : undefined} />
+            <SpyTile label="NEED spending" amount={spy.need.total} count={spy.need.count} currency={currency} accent="#3B82F6" hint={total > 0 ? `${((spy.need.total / total) * 100).toFixed(0)}% of total` : undefined} />
+            <SpyTile label="Over ₹1,000" amount={spy.big.total} count={spy.big.count} currency={currency} accent="#EF4444" hint={`${spy.big.count} txns`} />
+            <SpyTile label="Under ₹100" amount={spy.small.total} count={spy.small.count} currency={currency} accent="#10B981" hint="small leaks" />
+            <SpyTile label="Weekend spend" amount={spy.weekend.total} count={spy.weekend.count} currency={currency} accent="#8B5CF6" hint="Sat + Sun" />
+            <SpyTile label="Late-night" amount={spy.night.total} count={spy.night.count} currency={currency} accent="#EC4899" hint="10pm–5am" />
+            <SpyTile label="Card spend" amount={spy.card.total} count={spy.card.count} currency={currency} accent="#F59E0B" />
+            <SpyTile label="Cash spend" amount={spy.cash.total} count={spy.cash.count} currency={currency} accent="#10B981" />
+            <SpyTile label="Avg / txn" amount={spy.avg} currency={currency} accent="#6366F1" hint={`max ${formatCurrency(spy.max, currency)}`} />
+          </div>
+        )}
+        {spy.repeats.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-border">
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium mb-2">Repeat offenders (3+ times)</div>
+            <div className="space-y-1.5">
+              {spy.repeats.map((r) => (
+                <div key={r.name} className="flex items-center justify-between text-sm">
+                  <span className="truncate capitalize">{r.name} <span className="text-[10px] text-muted-foreground">×{r.count}</span></span>
+                  <span className="tabular-nums font-semibold">{formatCurrency(r.amount, currency)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Card>
+
+
+
       <Dialog open={!!drillCategoryId} onOpenChange={(o) => !o && setDrillCategoryId(null)}>
         <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
           {(() => {
