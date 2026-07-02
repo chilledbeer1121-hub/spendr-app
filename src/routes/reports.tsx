@@ -426,6 +426,75 @@ function ReportsPage() {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Spy Mode Drill-down */}
+      <Dialog open={!!spyFilter} onOpenChange={(o) => !o && setSpyFilter(null)}>
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+          {(() => {
+            if (!spyFilter) return null;
+            const meta: Record<string, { label: string; accent: string }> = {
+              want: { label: "WANT spending", accent: "#F59E0B" },
+              need: { label: "NEED spending", accent: "#3B82F6" },
+              big: { label: "Over ₹1,000", accent: "#EF4444" },
+              small: { label: "Under ₹100", accent: "#10B981" },
+              weekend: { label: "Weekend spend", accent: "#8B5CF6" },
+              night: { label: "Late-night", accent: "#EC4899" },
+              card: { label: "Card spend", accent: "#F59E0B" },
+              cash: { label: "Cash spend", accent: "#10B981" },
+            };
+            const m = meta[spyFilter];
+            // @ts-ignore
+            const items = (spy[spyFilter as keyof typeof spy] as any)?.items ?? [];
+            const ttl = items.reduce((s: number, e: any) => s + Number(e.amount), 0);
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: m.accent }} />
+                    {m.label}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-3 gap-2 py-2 border-b border-border">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</div>
+                    <div className="font-display text-base font-bold tabular-nums">{formatCurrency(ttl, currency)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Transactions</div>
+                    <div className="font-display text-base font-bold tabular-nums">{items.length}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">% of spend</div>
+                    <div className="font-display text-base font-bold tabular-nums">{total > 0 ? ((ttl / total) * 100).toFixed(1) : "0"}%</div>
+                  </div>
+                </div>
+                <ScrollArea className="flex-1 -mx-6 px-6">
+                  <div className="divide-y divide-border">
+                    {items.length === 0 ? (
+                      <p className="py-6 text-center text-sm text-muted-foreground">No matching expenses.</p>
+                    ) : (
+                      items.map((e: any) => (
+                        <div key={e.id} className="py-2.5 flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="font-medium text-sm truncate">{e.name}</div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              {format(parseISO(e.date), "MMM d, yyyy")} · {e.payment_mode.replace("_", " ")}
+                            </div>
+                            {e.note && <div className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{e.note}</div>}
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="font-semibold tabular-nums text-sm">{formatCurrency(Number(e.amount), currency)}</div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
