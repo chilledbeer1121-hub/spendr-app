@@ -59,6 +59,7 @@ function ReportsPage() {
   const { data: categories = [] } = useCategories(user?.id);
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
   const [drillCategoryId, setDrillCategoryId] = useState<string | null>(null);
+  const [spyFilter, setSpyFilter] = useState<string | null>(null);
   const [excludedCats, setExcludedCats] = useState<Set<string>>(new Set());
   const toggleCat = (id: string) => setExcludedCats((prev) => {
     const next = new Set(prev);
