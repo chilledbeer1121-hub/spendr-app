@@ -342,14 +342,14 @@ function ReportsPage() {
           <p className="py-4 text-center text-sm text-muted-foreground">No data in this range.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <SpyTile label="WANT spending" amount={spy.want.total} count={spy.want.count} currency={currency} accent="#F59E0B" hint={total > 0 ? `${((spy.want.total / total) * 100).toFixed(0)}% of total` : undefined} />
-            <SpyTile label="NEED spending" amount={spy.need.total} count={spy.need.count} currency={currency} accent="#3B82F6" hint={total > 0 ? `${((spy.need.total / total) * 100).toFixed(0)}% of total` : undefined} />
-            <SpyTile label="Over ₹1,000" amount={spy.big.total} count={spy.big.count} currency={currency} accent="#EF4444" hint={`${spy.big.count} txns`} />
-            <SpyTile label="Under ₹100" amount={spy.small.total} count={spy.small.count} currency={currency} accent="#10B981" hint="small leaks" />
-            <SpyTile label="Weekend spend" amount={spy.weekend.total} count={spy.weekend.count} currency={currency} accent="#8B5CF6" hint="Sat + Sun" />
-            <SpyTile label="Late-night" amount={spy.night.total} count={spy.night.count} currency={currency} accent="#EC4899" hint="10pm–5am" />
-            <SpyTile label="Card spend" amount={spy.card.total} count={spy.card.count} currency={currency} accent="#F59E0B" />
-            <SpyTile label="Cash spend" amount={spy.cash.total} count={spy.cash.count} currency={currency} accent="#10B981" />
+            <SpyTile label="WANT spending" amount={spy.want.total} count={spy.want.count} currency={currency} accent="#F59E0B" hint={total > 0 ? `${((spy.want.total / total) * 100).toFixed(0)}% of total` : undefined} onClick={() => setSpyFilter("want")} />
+            <SpyTile label="NEED spending" amount={spy.need.total} count={spy.need.count} currency={currency} accent="#3B82F6" hint={total > 0 ? `${((spy.need.total / total) * 100).toFixed(0)}% of total` : undefined} onClick={() => setSpyFilter("need")} />
+            <SpyTile label="Over ₹1,000" amount={spy.big.total} count={spy.big.count} currency={currency} accent="#EF4444" hint={`${spy.big.count} txns`} onClick={() => setSpyFilter("big")} />
+            <SpyTile label="Under ₹100" amount={spy.small.total} count={spy.small.count} currency={currency} accent="#10B981" hint="small leaks" onClick={() => setSpyFilter("small")} />
+            <SpyTile label="Weekend spend" amount={spy.weekend.total} count={spy.weekend.count} currency={currency} accent="#8B5CF6" hint="Sat + Sun" onClick={() => setSpyFilter("weekend")} />
+            <SpyTile label="Late-night" amount={spy.night.total} count={spy.night.count} currency={currency} accent="#EC4899" hint="10pm–5am" onClick={() => setSpyFilter("night")} />
+            <SpyTile label="Card spend" amount={spy.card.total} count={spy.card.count} currency={currency} accent="#F59E0B" onClick={() => setSpyFilter("card")} />
+            <SpyTile label="Cash spend" amount={spy.cash.total} count={spy.cash.count} currency={currency} accent="#10B981" onClick={() => setSpyFilter("cash")} />
             <SpyTile label="Avg / txn" amount={spy.avg} currency={currency} accent="#6366F1" hint={`max ${formatCurrency(spy.max, currency)}`} />
           </div>
         )}
