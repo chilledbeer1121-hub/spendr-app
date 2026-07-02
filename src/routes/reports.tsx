@@ -436,3 +436,19 @@ function Stat({ label, value }: { label: string; value: string }) {
     </Card>
   );
 }
+
+function SpyTile({ label, amount, count, currency, accent, hint }: { label: string; amount: number; count?: number; currency: string; accent: string; hint?: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 p-2.5">
+      <div className="flex items-center gap-1.5 mb-1">
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">{label}</span>
+      </div>
+      <div className="font-display text-sm md:text-base font-bold tabular-nums truncate">{formatCurrency(amount, currency)}</div>
+      <div className="text-[10px] text-muted-foreground truncate">
+        {count !== undefined && <>{count} txn{count === 1 ? "" : "s"}{hint ? " · " : ""}</>}
+        {hint}
+      </div>
+    </div>
+  );
+}
