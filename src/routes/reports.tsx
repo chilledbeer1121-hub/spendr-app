@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useExpenses, useCategories, useProfile, useCards } from "@/lib/expense-queries";
 import { formatCurrency, pctOfSalary } from "@/lib/format";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AppShell } from "@/components/app-shell";
 import { CategoryDot } from "@/components/category-dot";
@@ -11,6 +12,7 @@ import { SpendDonut } from "@/components/spend-donut";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
 import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle } from "@/lib/payable";
 import { cn } from "@/lib/utils";
+import { Eye } from "lucide-react";
 import {
   startOfMonth, endOfMonth, subMonths, startOfYear, format, parseISO, addMonths,
 } from "date-fns";
