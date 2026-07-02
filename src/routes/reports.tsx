@@ -239,33 +239,46 @@ function ReportsPage() {
           <>
             <div className="space-y-2.5 mb-2">
               {byCategory.map((c) => {
-                const pct = total > 0 ? (c.amount / total) * 100 : 0;
+                const pct = grandTotal > 0 ? (c.amount / grandTotal) * 100 : 0;
+                const excluded = excludedCats.has(c.id);
                 return (
-                  <button
-                    type="button"
+                  <div
                     key={c.id}
-                    onClick={() => setDrillCategoryId(c.id)}
-                    className="w-full text-left rounded-md -mx-1 px-1 py-1 hover:bg-muted/50 transition-colors"
+                    className={cn(
+                      "flex items-center gap-2 rounded-md -mx-1 px-1 py-1 transition-colors",
+                      excluded && "opacity-50",
+                    )}
                   >
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <CategoryDot color={c.color} icon="tag" size="sm" />
-                        <span className="font-medium truncate">{c.name}</span>
-                        <span className="text-[10px] text-muted-foreground">·{c.count}</span>
+                    <Checkbox
+                      checked={!excluded}
+                      onCheckedChange={() => toggleCat(c.id)}
+                      aria-label={`Include ${c.name}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setDrillCategoryId(c.id)}
+                      className="flex-1 min-w-0 text-left rounded-md px-1 py-0.5 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CategoryDot color={c.color} icon="tag" size="sm" />
+                          <span className="font-medium truncate">{c.name}</span>
+                          <span className="text-[10px] text-muted-foreground">·{c.count}</span>
+                        </div>
+                        <div className="flex items-baseline gap-2 tabular-nums">
+                          <span className="font-semibold">{formatCurrency(c.amount, currency)}</span>
+                          <span className="text-[11px] text-muted-foreground w-10 text-right">{pct.toFixed(1)}%</span>
+                        </div>
                       </div>
-                      <div className="flex items-baseline gap-2 tabular-nums">
-                        <span className="font-semibold">{formatCurrency(c.amount, currency)}</span>
-                        <span className="text-[11px] text-muted-foreground w-10 text-right">{pct.toFixed(1)}%</span>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: c.color }} />
                       </div>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: c.color }} />
-                    </div>
-                  </button>
+                    </button>
+                  </div>
                 );
               })}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2">Tap a category for details.</p>
+            <p className="text-[11px] text-muted-foreground mt-2">Uncheck to exclude from totals · tap a row for details.</p>
           </>
         )}
       </Card>
