@@ -59,6 +59,12 @@ function ReportsPage() {
   const { data: categories = [] } = useCategories(user?.id);
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
   const [drillCategoryId, setDrillCategoryId] = useState<string | null>(null);
+  const [excludedCats, setExcludedCats] = useState<Set<string>>(new Set());
+  const toggleCat = (id: string) => setExcludedCats((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
   const [view] = useSpendView();
   const [includeRec] = useIncludeRecurring();
   const range = rangeFor(rangeKey);
