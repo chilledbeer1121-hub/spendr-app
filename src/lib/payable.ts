@@ -97,9 +97,14 @@ export function filterByView(
   from: Date,
   to: Date,
 ): Expense[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   return expenses.filter((e) => {
     const dateStr = view === "payable" ? payableDateFor(e, cards) : e.date;
     const d = parseISO(dateStr);
-    return isWithinInterval(d, { start: from, end: to });
+    if (!isWithinInterval(d, { start: from, end: to })) return false;
+    // In payable view, hide items whose due date has already passed (assumed paid).
+    if (view === "payable" && e.card_id && d < today) return false;
+    return true;
   });
 }

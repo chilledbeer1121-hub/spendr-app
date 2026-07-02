@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useExpenses, useCategories, useProfile, useCards } from "@/lib/expense-queries";
 import { formatCurrency, pctOfSalary } from "@/lib/format";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AppShell } from "@/components/app-shell";
 import { CategoryDot } from "@/components/category-dot";
@@ -11,6 +12,7 @@ import { SpendDonut } from "@/components/spend-donut";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
 import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle } from "@/lib/payable";
 import { cn } from "@/lib/utils";
+import { Eye } from "lucide-react";
 import {
   startOfMonth, endOfMonth, subMonths, startOfYear, format, parseISO, addMonths,
 } from "date-fns";
@@ -57,6 +59,12 @@ function ReportsPage() {
   const { data: categories = [] } = useCategories(user?.id);
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
   const [drillCategoryId, setDrillCategoryId] = useState<string | null>(null);
+  const [excludedCats, setExcludedCats] = useState<Set<string>>(new Set());
+  const toggleCat = (id: string) => setExcludedCats((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
   const [view] = useSpendView();
   const [includeRec] = useIncludeRecurring();
   const range = rangeFor(rangeKey);
@@ -75,7 +83,13 @@ function ReportsPage() {
   }, [rawExpenses, cards, view, includeRec, range.from, range.to]);
   const trendExpenses = useMemo(() => applyRecurringToggle(rawTrendExpenses, includeRec), [rawTrendExpenses, includeRec]);
 
-  const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
+  const includedExpenses = useMemo(
+    () => expenses.filter((e) => !excludedCats.has(e.category_id)),
+    [expenses, excludedCats],
+  );
+  const total = includedExpenses.reduce((s, e) => s + Number(e.amount), 0);
+  const grandTotal = expenses.reduce((s, e) => s + Number(e.amount), 0);
+  const excludedTotal = grandTotal - total;
 
   const byCategory = useMemo(() => {
     const m = new Map<string, { amount: number; count: number }>();
@@ -95,16 +109,66 @@ function ReportsPage() {
 
   const byMode = useMemo(() => {
     const m = new Map<string, number>();
-    expenses.forEach((e) => m.set(e.payment_mode, (m.get(e.payment_mode) ?? 0) + Number(e.amount)));
+    includedExpenses.forEach((e) => m.set(e.payment_mode, (m.get(e.payment_mode) ?? 0) + Number(e.amount)));
     const PALETTE: Record<string, string> = { UPI: "#3B82F6", CARD: "#F59E0B", CASH: "#10B981", NET_BANKING: "#8B5CF6", EMI: "#EF4444" };
     return Array.from(m.entries()).map(([id, amount]) => ({ id, name: id, amount, color: PALETTE[id] ?? "#888" }));
-  }, [expenses]);
+  }, [includedExpenses]);
 
   const byType = useMemo(() => {
     const m: Record<string, number> = { NEED: 0, WANT: 0, EMI: 0, INVESTMENT: 0 };
-    byCategory.forEach((c) => { m[c.type] = (m[c.type] ?? 0) + c.amount; });
+    byCategory.forEach((c) => {
+      if (excludedCats.has(c.id)) return;
+      m[c.type] = (m[c.type] ?? 0) + c.amount;
+    });
     return m;
-  }, [byCategory]);
+  }, [byCategory, excludedCats]);
+
+  // Spy Mode aggregates
+  const spy = useMemo(() => {
+    const wantCats = new Set(categories.filter((c) => c.type === "WANT").map((c) => c.id));
+    const needCats = new Set(categories.filter((c) => c.type === "NEED").map((c) => c.id));
+    const wantItems = includedExpenses.filter((e) => (e.type_override ?? (wantCats.has(e.category_id) ? "WANT" : null)) === "WANT");
+    const needItems = includedExpenses.filter((e) => (e.type_override ?? (needCats.has(e.category_id) ? "NEED" : null)) === "NEED");
+    const big = includedExpenses.filter((e) => Number(e.amount) >= 1000);
+    const small = includedExpenses.filter((e) => Number(e.amount) < 100);
+    const weekendItems = includedExpenses.filter((e) => {
+      const d = parseISO(e.date).getDay();
+      return d === 0 || d === 6;
+    });
+    const nightItems = includedExpenses.filter((e) => {
+      const d = parseISO(e.date).getHours();
+      return d >= 22 || d < 5;
+    });
+    const cardItems = includedExpenses.filter((e) => e.payment_mode === "CARD");
+    const cashItems = includedExpenses.filter((e) => e.payment_mode === "CASH");
+    const byName = new Map<string, { count: number; amount: number }>();
+    includedExpenses.forEach((e) => {
+      const k = e.name.trim().toLowerCase();
+      if (!k) return;
+      const c = byName.get(k) ?? { count: 0, amount: 0 };
+      c.count += 1; c.amount += Number(e.amount);
+      byName.set(k, c);
+    });
+    const repeats = Array.from(byName.entries())
+      .filter(([, v]) => v.count >= 3)
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+    const sum = (arr: typeof includedExpenses) => arr.reduce((s, e) => s + Number(e.amount), 0);
+    return {
+      want: { count: wantItems.length, total: sum(wantItems) },
+      need: { count: needItems.length, total: sum(needItems) },
+      big: { count: big.length, total: sum(big) },
+      small: { count: small.length, total: sum(small) },
+      weekend: { count: weekendItems.length, total: sum(weekendItems) },
+      card: { count: cardItems.length, total: sum(cardItems) },
+      cash: { count: cashItems.length, total: sum(cashItems) },
+      night: { count: nightItems.length, total: sum(nightItems) },
+      repeats,
+      avg: includedExpenses.length ? sum(includedExpenses) / includedExpenses.length : 0,
+      max: includedExpenses.reduce((m, e) => (Number(e.amount) > m ? Number(e.amount) : m), 0),
+    };
+  }, [includedExpenses, categories]);
 
   const monthlyTrend = useMemo(() => {
     const months: { label: string; key: string; amount: number }[] = [];
@@ -151,11 +215,21 @@ function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <Stat label="Total spent" value={formatCurrency(total, currency)} />
-        <Stat label="Transactions" value={`${expenses.length}`} />
+      <div className="grid grid-cols-3 gap-3 mb-2">
+        <Stat label={excludedCats.size > 0 ? "Included total" : "Total spent"} value={formatCurrency(total, currency)} />
+        <Stat label="Transactions" value={`${includedExpenses.length}`} />
         <Stat label="% of salary" value={salary > 0 ? `${pctOfSalary(total, salary, range.months).toFixed(1)}%` : "—"} />
       </div>
+      {excludedCats.size > 0 && (
+        <div className="mb-4 flex items-center justify-between rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs">
+          <span className="text-muted-foreground">
+            Excluded {excludedCats.size} categor{excludedCats.size === 1 ? "y" : "ies"} · {formatCurrency(excludedTotal, currency)}
+          </span>
+          <button onClick={() => setExcludedCats(new Set())} className="font-medium text-primary hover:underline">
+            Reset
+          </button>
+        </div>
+      )}
 
       <Card className="p-4 md:p-5 bg-card border-border mb-4">
         <h2 className="font-display text-base font-semibold mb-3">Spend by category</h2>
@@ -165,33 +239,46 @@ function ReportsPage() {
           <>
             <div className="space-y-2.5 mb-2">
               {byCategory.map((c) => {
-                const pct = total > 0 ? (c.amount / total) * 100 : 0;
+                const pct = grandTotal > 0 ? (c.amount / grandTotal) * 100 : 0;
+                const excluded = excludedCats.has(c.id);
                 return (
-                  <button
-                    type="button"
+                  <div
                     key={c.id}
-                    onClick={() => setDrillCategoryId(c.id)}
-                    className="w-full text-left rounded-md -mx-1 px-1 py-1 hover:bg-muted/50 transition-colors"
+                    className={cn(
+                      "flex items-center gap-2 rounded-md -mx-1 px-1 py-1 transition-colors",
+                      excluded && "opacity-50",
+                    )}
                   >
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <CategoryDot color={c.color} icon="tag" size="sm" />
-                        <span className="font-medium truncate">{c.name}</span>
-                        <span className="text-[10px] text-muted-foreground">·{c.count}</span>
+                    <Checkbox
+                      checked={!excluded}
+                      onCheckedChange={() => toggleCat(c.id)}
+                      aria-label={`Include ${c.name}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setDrillCategoryId(c.id)}
+                      className="flex-1 min-w-0 text-left rounded-md px-1 py-0.5 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CategoryDot color={c.color} icon="tag" size="sm" />
+                          <span className="font-medium truncate">{c.name}</span>
+                          <span className="text-[10px] text-muted-foreground">·{c.count}</span>
+                        </div>
+                        <div className="flex items-baseline gap-2 tabular-nums">
+                          <span className="font-semibold">{formatCurrency(c.amount, currency)}</span>
+                          <span className="text-[11px] text-muted-foreground w-10 text-right">{pct.toFixed(1)}%</span>
+                        </div>
                       </div>
-                      <div className="flex items-baseline gap-2 tabular-nums">
-                        <span className="font-semibold">{formatCurrency(c.amount, currency)}</span>
-                        <span className="text-[11px] text-muted-foreground w-10 text-right">{pct.toFixed(1)}%</span>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: c.color }} />
                       </div>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: c.color }} />
-                    </div>
-                  </button>
+                    </button>
+                  </div>
                 );
               })}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2">Tap a category for details.</p>
+            <p className="text-[11px] text-muted-foreground mt-2">Uncheck to exclude from totals · tap a row for details.</p>
           </>
         )}
       </Card>
@@ -243,6 +330,44 @@ function ReportsPage() {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      <Card className="mt-4 p-4 md:p-5 bg-card border-border">
+        <div className="flex items-center gap-2 mb-3">
+          <Eye className="h-4 w-4 text-primary" />
+          <h2 className="font-display text-base font-semibold">Spy Mode</h2>
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">quick x-rays</span>
+        </div>
+        {includedExpenses.length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">No data in this range.</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <SpyTile label="WANT spending" amount={spy.want.total} count={spy.want.count} currency={currency} accent="#F59E0B" hint={total > 0 ? `${((spy.want.total / total) * 100).toFixed(0)}% of total` : undefined} />
+            <SpyTile label="NEED spending" amount={spy.need.total} count={spy.need.count} currency={currency} accent="#3B82F6" hint={total > 0 ? `${((spy.need.total / total) * 100).toFixed(0)}% of total` : undefined} />
+            <SpyTile label="Over ₹1,000" amount={spy.big.total} count={spy.big.count} currency={currency} accent="#EF4444" hint={`${spy.big.count} txns`} />
+            <SpyTile label="Under ₹100" amount={spy.small.total} count={spy.small.count} currency={currency} accent="#10B981" hint="small leaks" />
+            <SpyTile label="Weekend spend" amount={spy.weekend.total} count={spy.weekend.count} currency={currency} accent="#8B5CF6" hint="Sat + Sun" />
+            <SpyTile label="Late-night" amount={spy.night.total} count={spy.night.count} currency={currency} accent="#EC4899" hint="10pm–5am" />
+            <SpyTile label="Card spend" amount={spy.card.total} count={spy.card.count} currency={currency} accent="#F59E0B" />
+            <SpyTile label="Cash spend" amount={spy.cash.total} count={spy.cash.count} currency={currency} accent="#10B981" />
+            <SpyTile label="Avg / txn" amount={spy.avg} currency={currency} accent="#6366F1" hint={`max ${formatCurrency(spy.max, currency)}`} />
+          </div>
+        )}
+        {spy.repeats.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-border">
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium mb-2">Repeat offenders (3+ times)</div>
+            <div className="space-y-1.5">
+              {spy.repeats.map((r) => (
+                <div key={r.name} className="flex items-center justify-between text-sm">
+                  <span className="truncate capitalize">{r.name} <span className="text-[10px] text-muted-foreground">×{r.count}</span></span>
+                  <span className="tabular-nums font-semibold">{formatCurrency(r.amount, currency)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Card>
+
+
 
       <Dialog open={!!drillCategoryId} onOpenChange={(o) => !o && setDrillCategoryId(null)}>
         <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
@@ -309,5 +434,21 @@ function Stat({ label, value }: { label: string; value: string }) {
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">{label}</div>
       <div className="mt-1 font-display text-base md:text-lg font-bold tabular-nums truncate">{value}</div>
     </Card>
+  );
+}
+
+function SpyTile({ label, amount, count, currency, accent, hint }: { label: string; amount: number; count?: number; currency: string; accent: string; hint?: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 p-2.5">
+      <div className="flex items-center gap-1.5 mb-1">
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">{label}</span>
+      </div>
+      <div className="font-display text-sm md:text-base font-bold tabular-nums truncate">{formatCurrency(amount, currency)}</div>
+      <div className="text-[10px] text-muted-foreground truncate">
+        {count !== undefined && <>{count} txn{count === 1 ? "" : "s"}{hint ? " · " : ""}</>}
+        {hint}
+      </div>
+    </div>
   );
 }
