@@ -6,6 +6,7 @@ import { formatCurrency, pctOfSalary } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { AppShell } from "@/components/app-shell";
 import { CategoryDot } from "@/components/category-dot";
 import { SpendDonut } from "@/components/spend-donut";
@@ -59,6 +60,7 @@ function ReportsPage() {
   const { data: categories = [] } = useCategories(user?.id);
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
   const [drillCategoryId, setDrillCategoryId] = useState<string | null>(null);
+  const [spyFilter, setSpyFilter] = useState<string | null>(null);
   const [excludedCats, setExcludedCats] = useState<Set<string>>(new Set());
   const toggleCat = (id: string) => setExcludedCats((prev) => {
     const next = new Set(prev);
@@ -156,14 +158,14 @@ function ReportsPage() {
       .slice(0, 5);
     const sum = (arr: typeof includedExpenses) => arr.reduce((s, e) => s + Number(e.amount), 0);
     return {
-      want: { count: wantItems.length, total: sum(wantItems) },
-      need: { count: needItems.length, total: sum(needItems) },
-      big: { count: big.length, total: sum(big) },
-      small: { count: small.length, total: sum(small) },
-      weekend: { count: weekendItems.length, total: sum(weekendItems) },
-      card: { count: cardItems.length, total: sum(cardItems) },
-      cash: { count: cashItems.length, total: sum(cashItems) },
-      night: { count: nightItems.length, total: sum(nightItems) },
+      want: { count: wantItems.length, total: sum(wantItems), items: wantItems },
+      need: { count: needItems.length, total: sum(needItems), items: needItems },
+      big: { count: big.length, total: sum(big), items: big },
+      small: { count: small.length, total: sum(small), items: small },
+      weekend: { count: weekendItems.length, total: sum(weekendItems), items: weekendItems },
+      card: { count: cardItems.length, total: sum(cardItems), items: cardItems },
+      cash: { count: cashItems.length, total: sum(cashItems), items: cashItems },
+      night: { count: nightItems.length, total: sum(nightItems), items: nightItems },
       repeats,
       avg: includedExpenses.length ? sum(includedExpenses) / includedExpenses.length : 0,
       max: includedExpenses.reduce((m, e) => (Number(e.amount) > m ? Number(e.amount) : m), 0),
@@ -341,14 +343,14 @@ function ReportsPage() {
           <p className="py-4 text-center text-sm text-muted-foreground">No data in this range.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <SpyTile label="WANT spending" amount={spy.want.total} count={spy.want.count} currency={currency} accent="#F59E0B" hint={total > 0 ? `${((spy.want.total / total) * 100).toFixed(0)}% of total` : undefined} />
-            <SpyTile label="NEED spending" amount={spy.need.total} count={spy.need.count} currency={currency} accent="#3B82F6" hint={total > 0 ? `${((spy.need.total / total) * 100).toFixed(0)}% of total` : undefined} />
-            <SpyTile label="Over ₹1,000" amount={spy.big.total} count={spy.big.count} currency={currency} accent="#EF4444" hint={`${spy.big.count} txns`} />
-            <SpyTile label="Under ₹100" amount={spy.small.total} count={spy.small.count} currency={currency} accent="#10B981" hint="small leaks" />
-            <SpyTile label="Weekend spend" amount={spy.weekend.total} count={spy.weekend.count} currency={currency} accent="#8B5CF6" hint="Sat + Sun" />
-            <SpyTile label="Late-night" amount={spy.night.total} count={spy.night.count} currency={currency} accent="#EC4899" hint="10pm–5am" />
-            <SpyTile label="Card spend" amount={spy.card.total} count={spy.card.count} currency={currency} accent="#F59E0B" />
-            <SpyTile label="Cash spend" amount={spy.cash.total} count={spy.cash.count} currency={currency} accent="#10B981" />
+            <SpyTile label="WANT spending" amount={spy.want.total} count={spy.want.count} currency={currency} accent="#F59E0B" hint={total > 0 ? `${((spy.want.total / total) * 100).toFixed(0)}% of total` : undefined} onClick={() => setSpyFilter("want")} />
+            <SpyTile label="NEED spending" amount={spy.need.total} count={spy.need.count} currency={currency} accent="#3B82F6" hint={total > 0 ? `${((spy.need.total / total) * 100).toFixed(0)}% of total` : undefined} onClick={() => setSpyFilter("need")} />
+            <SpyTile label="Over ₹1,000" amount={spy.big.total} count={spy.big.count} currency={currency} accent="#EF4444" hint={`${spy.big.count} txns`} onClick={() => setSpyFilter("big")} />
+            <SpyTile label="Under ₹100" amount={spy.small.total} count={spy.small.count} currency={currency} accent="#10B981" hint="small leaks" onClick={() => setSpyFilter("small")} />
+            <SpyTile label="Weekend spend" amount={spy.weekend.total} count={spy.weekend.count} currency={currency} accent="#8B5CF6" hint="Sat + Sun" onClick={() => setSpyFilter("weekend")} />
+            <SpyTile label="Late-night" amount={spy.night.total} count={spy.night.count} currency={currency} accent="#EC4899" hint="10pm–5am" onClick={() => setSpyFilter("night")} />
+            <SpyTile label="Card spend" amount={spy.card.total} count={spy.card.count} currency={currency} accent="#F59E0B" onClick={() => setSpyFilter("card")} />
+            <SpyTile label="Cash spend" amount={spy.cash.total} count={spy.cash.count} currency={currency} accent="#10B981" onClick={() => setSpyFilter("cash")} />
             <SpyTile label="Avg / txn" amount={spy.avg} currency={currency} accent="#6366F1" hint={`max ${formatCurrency(spy.max, currency)}`} />
           </div>
         )}
@@ -424,6 +426,75 @@ function ReportsPage() {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Spy Mode Drill-down */}
+      <Dialog open={!!spyFilter} onOpenChange={(o) => !o && setSpyFilter(null)}>
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+          {(() => {
+            if (!spyFilter) return null;
+            const meta: Record<string, { label: string; accent: string }> = {
+              want: { label: "WANT spending", accent: "#F59E0B" },
+              need: { label: "NEED spending", accent: "#3B82F6" },
+              big: { label: "Over ₹1,000", accent: "#EF4444" },
+              small: { label: "Under ₹100", accent: "#10B981" },
+              weekend: { label: "Weekend spend", accent: "#8B5CF6" },
+              night: { label: "Late-night", accent: "#EC4899" },
+              card: { label: "Card spend", accent: "#F59E0B" },
+              cash: { label: "Cash spend", accent: "#10B981" },
+            };
+            const m = meta[spyFilter];
+            // @ts-ignore
+            const items = (spy[spyFilter as keyof typeof spy] as any)?.items ?? [];
+            const ttl = items.reduce((s: number, e: any) => s + Number(e.amount), 0);
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: m.accent }} />
+                    {m.label}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-3 gap-2 py-2 border-b border-border">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</div>
+                    <div className="font-display text-base font-bold tabular-nums">{formatCurrency(ttl, currency)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Transactions</div>
+                    <div className="font-display text-base font-bold tabular-nums">{items.length}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">% of spend</div>
+                    <div className="font-display text-base font-bold tabular-nums">{total > 0 ? ((ttl / total) * 100).toFixed(1) : "0"}%</div>
+                  </div>
+                </div>
+                <ScrollArea className="flex-1 -mx-6 px-6">
+                  <div className="divide-y divide-border">
+                    {items.length === 0 ? (
+                      <p className="py-6 text-center text-sm text-muted-foreground">No matching expenses.</p>
+                    ) : (
+                      items.map((e: any) => (
+                        <div key={e.id} className="py-2.5 flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="font-medium text-sm truncate">{e.name}</div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              {format(parseISO(e.date), "MMM d, yyyy")} · {e.payment_mode.replace("_", " ")}
+                            </div>
+                            {e.note && <div className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{e.note}</div>}
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="font-semibold tabular-nums text-sm">{formatCurrency(Number(e.amount), currency)}</div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -437,9 +508,13 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SpyTile({ label, amount, count, currency, accent, hint }: { label: string; amount: number; count?: number; currency: string; accent: string; hint?: string }) {
+function SpyTile({ label, amount, count, currency, accent, hint, onClick }: { label: string; amount: number; count?: number; currency: string; accent: string; hint?: string; onClick?: () => void }) {
   return (
-    <div className="rounded-lg border border-border bg-muted/30 p-2.5">
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-left rounded-lg border border-border bg-muted/30 p-2.5 hover:bg-muted/60 transition-colors w-full"
+    >
       <div className="flex items-center gap-1.5 mb-1">
         <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">{label}</span>
@@ -449,6 +524,6 @@ function SpyTile({ label, amount, count, currency, accent, hint }: { label: stri
         {count !== undefined && <>{count} txn{count === 1 ? "" : "s"}{hint ? " · " : ""}</>}
         {hint}
       </div>
-    </div>
+    </button>
   );
 }
