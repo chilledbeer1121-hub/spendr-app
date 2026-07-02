@@ -116,9 +116,59 @@ function ReportsPage() {
 
   const byType = useMemo(() => {
     const m: Record<string, number> = { NEED: 0, WANT: 0, EMI: 0, INVESTMENT: 0 };
-    byCategory.forEach((c) => { m[c.type] = (m[c.type] ?? 0) + c.amount; });
+    byCategory.forEach((c) => {
+      if (excludedCats.has(c.id)) return;
+      m[c.type] = (m[c.type] ?? 0) + c.amount;
+    });
     return m;
-  }, [byCategory]);
+  }, [byCategory, excludedCats]);
+
+  // Spy Mode aggregates
+  const spy = useMemo(() => {
+    const wantCats = new Set(categories.filter((c) => c.type === "WANT").map((c) => c.id));
+    const needCats = new Set(categories.filter((c) => c.type === "NEED").map((c) => c.id));
+    const wantItems = includedExpenses.filter((e) => (e.type_override ?? (wantCats.has(e.category_id) ? "WANT" : null)) === "WANT");
+    const needItems = includedExpenses.filter((e) => (e.type_override ?? (needCats.has(e.category_id) ? "NEED" : null)) === "NEED");
+    const big = includedExpenses.filter((e) => Number(e.amount) >= 1000);
+    const small = includedExpenses.filter((e) => Number(e.amount) < 100);
+    const weekendItems = includedExpenses.filter((e) => {
+      const d = parseISO(e.date).getDay();
+      return d === 0 || d === 6;
+    });
+    const nightItems = includedExpenses.filter((e) => {
+      const d = parseISO(e.date).getHours();
+      return d >= 22 || d < 5;
+    });
+    const cardItems = includedExpenses.filter((e) => e.payment_mode === "CARD");
+    const cashItems = includedExpenses.filter((e) => e.payment_mode === "CASH");
+    const byName = new Map<string, { count: number; amount: number }>();
+    includedExpenses.forEach((e) => {
+      const k = e.name.trim().toLowerCase();
+      if (!k) return;
+      const c = byName.get(k) ?? { count: 0, amount: 0 };
+      c.count += 1; c.amount += Number(e.amount);
+      byName.set(k, c);
+    });
+    const repeats = Array.from(byName.entries())
+      .filter(([, v]) => v.count >= 3)
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+    const sum = (arr: typeof includedExpenses) => arr.reduce((s, e) => s + Number(e.amount), 0);
+    return {
+      want: { count: wantItems.length, total: sum(wantItems) },
+      need: { count: needItems.length, total: sum(needItems) },
+      big: { count: big.length, total: sum(big) },
+      small: { count: small.length, total: sum(small) },
+      weekend: { count: weekendItems.length, total: sum(weekendItems) },
+      card: { count: cardItems.length, total: sum(cardItems) },
+      cash: { count: cashItems.length, total: sum(cashItems) },
+      night: { count: nightItems.length, total: sum(nightItems) },
+      repeats,
+      avg: includedExpenses.length ? sum(includedExpenses) / includedExpenses.length : 0,
+      max: includedExpenses.reduce((m, e) => (Number(e.amount) > m ? Number(e.amount) : m), 0),
+    };
+  }, [includedExpenses, categories]);
 
   const monthlyTrend = useMemo(() => {
     const months: { label: string; key: string; amount: number }[] = [];
