@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { parseISO, format, isWithinInterval } from "date-fns";
-import type { Expense, CreditCard } from "./expense-queries";
+import type { Expense, CreditCard, Category } from "./expense-queries";
 
 export type SpendView = "spent" | "payable";
 
 const KEY = "spendr:viewMode";
 const REC_KEY = "spendr:includeRecurring";
+const INV_KEY = "spendr:includeInvestments";
 
 export function useSpendView(): [SpendView, (v: SpendView) => void] {
   const [view, setView] = useState<SpendView>(() => {
