@@ -81,7 +81,9 @@ function ProgressPage() {
     if (e.payment_mode === "EMI") return false;
     if (!includeRec && e.recurring_id) return false;
     const t = e.type_override ?? catTypeById.get(e.category_id);
-    return t !== "NEED" && t !== "EMI";
+    if (t === "NEED" || t === "EMI") return false;
+    if (!includeInv && t === "INVESTMENT") return false;
+    return true;
   };
 
 
