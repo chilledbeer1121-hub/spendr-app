@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useProfile, useExpenses, useCategories, useCards } from "@/lib/expense-queries";
-import { useSpendView, payableDateFor, useIncludeRecurring } from "@/lib/payable";
+import { useSpendView, payableDateFor, useIncludeRecurring, useIncludeInvestments } from "@/lib/payable";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
