@@ -11,7 +11,7 @@ import { AppShell } from "@/components/app-shell";
 import { CategoryDot } from "@/components/category-dot";
 import { SpendDonut } from "@/components/spend-donut";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
-import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle } from "@/lib/payable";
+import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle, useIncludeInvestments, applyInvestmentToggle } from "@/lib/payable";
 import { cn } from "@/lib/utils";
 import { Eye } from "lucide-react";
 import {
