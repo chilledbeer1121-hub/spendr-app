@@ -54,6 +54,7 @@ function VizPage() {
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
   const [view] = useSpendView();
   const [includeRec] = useIncludeRecurring();
+  const [includeInv] = useIncludeInvestments();
   const range = rangeFor(rangeKey);
   const fetchFrom = startOfMonth(subMonths(range.from, 3));
   const fetchTo = endOfMonth(addMonths(range.to, 2));
@@ -61,8 +62,8 @@ function VizPage() {
   const currency = profile?.currency ?? "INR";
 
   const expenses = useMemo(
-    () => filterByView(applyRecurringToggle(rawExpenses, includeRec), cards, view, range.from, range.to),
-    [rawExpenses, cards, view, includeRec, range.from, range.to]
+    () => filterByView(applyInvestmentToggle(applyRecurringToggle(rawExpenses, includeRec), categories, includeInv), cards, view, range.from, range.to),
+    [rawExpenses, cards, categories, view, includeRec, includeInv, range.from, range.to]
   );
   const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
 
