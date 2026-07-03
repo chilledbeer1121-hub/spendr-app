@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Plus, ListOrdered, BarChart3, Lightbulb, Wallet, Settings, LogOut,
   MoreHorizontal, Repeat, BookHeart, PiggyBank, CreditCard as CreditCardIcon,
-  PanelLeftClose, PanelLeftOpen, Network, Gauge, TrendingUp, Target,
+  PanelLeftClose, PanelLeftOpen, Network, Gauge, TrendingUp, Target, CalendarDays,
 } from "lucide-react";
 import { DailyGoalReminder } from "@/components/daily-goal-reminder";
 
@@ -21,6 +21,7 @@ const primaryNav = [
 ] as const;
 
 const moreNav = [
+  { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/progress", label: "Progress", icon: Gauge },
   { to: "/goals", label: "Goals", icon: Target },
   { to: "/visualization", label: "Visualization", icon: Network },
