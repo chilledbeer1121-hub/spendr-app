@@ -1,6 +1,6 @@
-import { useIncludeRecurring, useSpendView, type SpendView } from "@/lib/payable";
+import { useIncludeInvestments, useIncludeRecurring, useSpendView, type SpendView } from "@/lib/payable";
 import { cn } from "@/lib/utils";
-import { Wallet, CalendarClock, Repeat } from "lucide-react";
+import { Wallet, CalendarClock, Repeat, TrendingUp } from "lucide-react";
 
 const OPTIONS: { key: SpendView; label: string; short: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "spent", label: "Spent", short: "Spent", icon: Wallet },
@@ -10,6 +10,7 @@ const OPTIONS: { key: SpendView; label: string; short: string; icon: React.Compo
 export function SpendViewToggle({ className }: { className?: string }) {
   const [view, setView] = useSpendView();
   const [includeRec, setIncludeRec] = useIncludeRecurring();
+  const [includeInv, setIncludeInv] = useIncludeInvestments();
   return (
     <div className={cn("inline-flex items-center gap-2 flex-wrap", className)}>
       <div
@@ -52,6 +53,21 @@ export function SpendViewToggle({ className }: { className?: string }) {
       >
         <Repeat className="size-3.5" />
         Recurring {includeRec ? "on" : "off"}
+      </button>
+      <button
+        type="button"
+        onClick={() => setIncludeInv(!includeInv)}
+        aria-pressed={includeInv}
+        title={includeInv ? "Investments counted — click to exclude" : "Investments excluded — click to include"}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors border",
+          includeInv
+            ? "bg-primary/10 text-primary border-primary/30"
+            : "bg-muted text-muted-foreground border-transparent hover:text-foreground",
+        )}
+      >
+        <TrendingUp className="size-3.5" />
+        Investments {includeInv ? "on" : "off"}
       </button>
     </div>
   );
