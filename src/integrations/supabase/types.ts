@@ -327,6 +327,7 @@ export type Database = {
       monthly_savings: {
         Row: {
           amount_saved: number
+          bonus: number
           created_at: string
           id: string
           month: string
@@ -337,6 +338,7 @@ export type Database = {
         }
         Insert: {
           amount_saved?: number
+          bonus?: number
           created_at?: string
           id?: string
           month: string
@@ -347,6 +349,7 @@ export type Database = {
         }
         Update: {
           amount_saved?: number
+          bonus?: number
           created_at?: string
           id?: string
           month?: string
@@ -454,6 +457,10 @@ export type Database = {
         Returns: number
       }
       recompute_savings: { Args: { _user_id: string }; Returns: number }
+      set_month_bonus: {
+        Args: { _bonus: number; _month: string; _user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       category_type: "NEED" | "WANT" | "EMI" | "INVESTMENT"

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useProfile, useExpenses, useCategories, useCards } from "@/lib/expense-queries";
-import { useSpendView, payableDateFor, useIncludeRecurring } from "@/lib/payable";
+import { useSpendView, payableDateFor, useIncludeRecurring, useIncludeInvestments } from "@/lib/payable";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
@@ -50,6 +50,7 @@ function ProgressPage() {
   const [period, setPeriod] = useState<Period>("month");
   const [view] = useSpendView();
   const [includeRec] = useIncludeRecurring();
+  const [includeInv] = useIncludeInvestments();
 
   // Wide pull so payable-mode card bills bucket correctly
   const { data: rawExpenses = [] } = useExpenses(user?.id, {
@@ -80,7 +81,9 @@ function ProgressPage() {
     if (e.payment_mode === "EMI") return false;
     if (!includeRec && e.recurring_id) return false;
     const t = e.type_override ?? catTypeById.get(e.category_id);
-    return t !== "NEED" && t !== "EMI";
+    if (t === "NEED" || t === "EMI") return false;
+    if (!includeInv && t === "INVESTMENT") return false;
+    return true;
   };
 
 

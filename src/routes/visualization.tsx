@@ -16,7 +16,7 @@ import {
 import {
   ResponsiveContainer, Treemap, Tooltip, Sankey, Layer, Rectangle,
 } from "recharts";
-import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle } from "@/lib/payable";
+import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle, useIncludeInvestments, applyInvestmentToggle } from "@/lib/payable";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
 
 export const Route = createFileRoute("/visualization")({
@@ -54,6 +54,7 @@ function VizPage() {
   const [rangeKey, setRangeKey] = useState<RangeKey>("this_month");
   const [view] = useSpendView();
   const [includeRec] = useIncludeRecurring();
+  const [includeInv] = useIncludeInvestments();
   const range = rangeFor(rangeKey);
   const fetchFrom = startOfMonth(subMonths(range.from, 3));
   const fetchTo = endOfMonth(addMonths(range.to, 2));
@@ -61,8 +62,8 @@ function VizPage() {
   const currency = profile?.currency ?? "INR";
 
   const expenses = useMemo(
-    () => filterByView(applyRecurringToggle(rawExpenses, includeRec), cards, view, range.from, range.to),
-    [rawExpenses, cards, view, includeRec, range.from, range.to]
+    () => filterByView(applyInvestmentToggle(applyRecurringToggle(rawExpenses, includeRec), categories, includeInv), cards, view, range.from, range.to),
+    [rawExpenses, cards, categories, view, includeRec, includeInv, range.from, range.to]
   );
   const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
 
@@ -169,6 +170,43 @@ function VizPage() {
         </Card>
       ) : (
         <div className="grid gap-4">
+          {/* Need vs Want vs EMI vs Investment — Spotlight (TOP) */}
+          <Card className="p-4 md:p-5 bg-card border-border">
+            <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
+              <h2 className="font-display text-base font-semibold">Need vs Want vs EMI vs Investment</h2>
+              <span className="text-[11px] text-muted-foreground">Where every rupee goes · click a chip to focus</span>
+            </div>
+            <TypeSpotlight treemapData={treemapData} total={total} currency={currency} expenses={expenses} categories={categories} />
+          </Card>
+
+          {/* Top expenses */}
+          <Card className="p-4 md:p-5 bg-card border-border">
+            <h2 className="font-display text-base font-semibold mb-3">Top transactions</h2>
+            <div className="divide-y divide-border">
+              {topExpenses.map((e) => {
+                const cat = categories.find((c) => c.id === e.category_id);
+                const pct = total > 0 ? (Number(e.amount) / total) * 100 : 0;
+                return (
+                  <div key={e.id} className="py-2.5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <CategoryDot color={cat?.color ?? "#888"} icon="tag" size="sm" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">{e.name}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {format(parseISO(e.date), "MMM d")} · {cat?.name ?? ""}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-semibold tabular-nums">{formatCurrency(Number(e.amount), currency)}</div>
+                      <div className="text-[10px] text-muted-foreground tabular-nums">{pct.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
           {/* Treemap */}
           <Card className="p-4 md:p-5 bg-card border-border">
             <div className="flex items-baseline justify-between mb-3">
@@ -240,43 +278,94 @@ function VizPage() {
             </div>
             <CalendarHeatmap entries={heatmap.entries} max={heatmap.max} currency={currency} />
           </Card>
-
-          {/* Type rings + Top expenses */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="p-4 md:p-5 bg-card border-border">
-              <h2 className="font-display text-base font-semibold mb-4">Type breakdown</h2>
-              <TypeBars treemapData={treemapData} total={total} currency={currency} />
-            </Card>
-
-            <Card className="p-4 md:p-5 bg-card border-border">
-              <h2 className="font-display text-base font-semibold mb-3">Top transactions</h2>
-              <div className="divide-y divide-border">
-                {topExpenses.map((e) => {
-                  const cat = categories.find((c) => c.id === e.category_id);
-                  const pct = total > 0 ? (Number(e.amount) / total) * 100 : 0;
-                  return (
-                    <div key={e.id} className="py-2.5 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <CategoryDot color={cat?.color ?? "#888"} icon="tag" size="sm" />
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium truncate">{e.name}</div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {format(parseISO(e.date), "MMM d")} · {cat?.name ?? ""}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-sm font-semibold tabular-nums">{formatCurrency(Number(e.amount), currency)}</div>
-                        <div className="text-[10px] text-muted-foreground tabular-nums">{pct.toFixed(1)}%</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
         </div>
       )}
+    </div>
+  );
+}
+
+const TYPE_LABELS: Record<string, string> = { NEED: "Needs", WANT: "Wants", EMI: "EMIs", INVESTMENT: "Investments" };
+const TYPE_ORDER = ["NEED", "WANT", "EMI", "INVESTMENT"];
+
+function TypeSpotlight({
+  treemapData, total, currency, expenses, categories,
+}: {
+  treemapData: { name: string; color: string; children: { size: number; name: string; color: string }[] }[];
+  total: number; currency: string;
+  expenses: { category_id: string; amount: number }[];
+  categories: { id: string; type: string }[];
+}) {
+  const countByType = new Map<string, number>();
+  expenses.forEach((e) => {
+    const t = categories.find((c) => c.id === e.category_id)?.type ?? "WANT";
+    countByType.set(t, (countByType.get(t) ?? 0) + 1);
+  });
+  const rows = TYPE_ORDER
+    .map((type) => {
+      const found = treemapData.find((t) => t.name === type);
+      const children = found?.children ?? [];
+      const amount = children.reduce((s, c) => s + c.size, 0);
+      return {
+        type, label: TYPE_LABELS[type] ?? type,
+        color: found?.color ?? TYPE_COLORS[type] ?? "#888",
+        amount, children, count: countByType.get(type) ?? 0,
+      };
+    });
+  const maxAmount = Math.max(1, ...rows.map((r) => r.amount));
+  return (
+    <div className="space-y-4">
+      {/* Big overview strip */}
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted">
+        {rows.filter((r) => r.amount > 0).map((r) => (
+          <div key={r.type} title={`${r.label} · ${formatCurrency(r.amount, currency)}`}
+            style={{ width: `${(r.amount / total) * 100}%`, background: r.color }} />
+        ))}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {rows.map((r) => {
+          const pct = total > 0 ? (r.amount / total) * 100 : 0;
+          const barW = r.amount > 0 ? Math.max(3, (r.amount / maxAmount) * 100) : 0;
+          const top = [...r.children].sort((a, b) => b.size - a.size).slice(0, 4);
+          return (
+            <div key={r.type} className="rounded-xl border border-border bg-background/40 p-3 md:p-4">
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="size-3 rounded-md shrink-0" style={{ background: r.color }} />
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">{r.label}</div>
+                    <div className="text-[10px] text-muted-foreground">{r.count} txn{r.count === 1 ? "" : "s"}</div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-display text-base md:text-lg font-bold tabular-nums">{formatCurrency(r.amount, currency)}</div>
+                  <div className="text-[10px] text-muted-foreground tabular-nums">{pct.toFixed(1)}% of spend</div>
+                </div>
+              </div>
+              <div className="mt-2.5 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${barW}%`, background: r.color }} />
+              </div>
+              {top.length > 0 ? (
+                <div className="mt-3 space-y-1.5">
+                  {top.map((c) => {
+                    const w = r.amount > 0 ? (c.size / r.amount) * 100 : 0;
+                    return (
+                      <div key={c.name} className="flex items-center gap-2 text-[11px]">
+                        <span className="size-1.5 rounded-full shrink-0" style={{ background: c.color }} />
+                        <span className="truncate flex-1">{c.name}</span>
+                        <span className="tabular-nums text-muted-foreground">{formatCurrency(c.size, currency)}</span>
+                        <span className="tabular-nums text-muted-foreground w-10 text-right">{w.toFixed(0)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="mt-3 text-[11px] text-muted-foreground italic">Nothing here yet</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

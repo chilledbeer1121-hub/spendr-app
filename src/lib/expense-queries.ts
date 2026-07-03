@@ -79,6 +79,7 @@ export type SavingRow = {
   salary_snapshot: number;
   total_spent: number;
   amount_saved: number;
+  bonus: number;
 };
 
 export function useProfile(userId: string | undefined) {

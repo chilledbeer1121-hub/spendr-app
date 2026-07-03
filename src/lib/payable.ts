@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { parseISO, format, isWithinInterval } from "date-fns";
-import type { Expense, CreditCard } from "./expense-queries";
+import type { Expense, CreditCard, Category } from "./expense-queries";
 
 export type SpendView = "spent" | "payable";
 
 const KEY = "spendr:viewMode";
 const REC_KEY = "spendr:includeRecurring";
+const INV_KEY = "spendr:includeInvestments";
 
 export function useSpendView(): [SpendView, (v: SpendView) => void] {
   const [view, setView] = useState<SpendView>(() => {
@@ -54,6 +55,40 @@ export function applyRecurringToggle<T extends { recurring_id?: string | null }>
 ): T[] {
   if (include) return expenses;
   return expenses.filter((e) => !e.recurring_id);
+}
+
+export function useIncludeInvestments(): [boolean, (v: boolean) => void] {
+  const [on, setOn] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const raw = localStorage.getItem(INV_KEY);
+    return raw === null ? true : raw === "1";
+  });
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === INV_KEY && e.newValue !== null) setOn(e.newValue === "1");
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+  const set = (v: boolean) => {
+    localStorage.setItem(INV_KEY, v ? "1" : "0");
+    setOn(v);
+    window.dispatchEvent(new StorageEvent("storage", { key: INV_KEY, newValue: v ? "1" : "0" }));
+  };
+  return [on, set];
+}
+
+export function applyInvestmentToggle(
+  expenses: Expense[],
+  categories: Category[],
+  include: boolean,
+): Expense[] {
+  if (include) return expenses;
+  const invCats = new Set(categories.filter((c) => c.type === "INVESTMENT").map((c) => c.id));
+  return expenses.filter((e) => {
+    const t = e.type_override ?? (invCats.has(e.category_id) ? "INVESTMENT" : null);
+    return t !== "INVESTMENT";
+  });
 }
 
 /**

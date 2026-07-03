@@ -11,7 +11,7 @@ import { AppShell } from "@/components/app-shell";
 import { CategoryDot } from "@/components/category-dot";
 import { SpendDonut } from "@/components/spend-donut";
 import { SpendViewToggle } from "@/components/spend-view-toggle";
-import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle } from "@/lib/payable";
+import { useSpendView, filterByView, useIncludeRecurring, applyRecurringToggle, useIncludeInvestments, applyInvestmentToggle } from "@/lib/payable";
 import { cn } from "@/lib/utils";
 import { Eye } from "lucide-react";
 import {
@@ -69,6 +69,7 @@ function ReportsPage() {
   });
   const [view] = useSpendView();
   const [includeRec] = useIncludeRecurring();
+  const [includeInv] = useIncludeInvestments();
   const range = rangeFor(rangeKey);
   // Widen the fetch window so "payable" view can pull card spends that fall due in/out of the range.
   const fetchFrom = range.from ? startOfMonth(subMonths(range.from, 3)) : undefined;
@@ -80,10 +81,11 @@ function ReportsPage() {
   const salary = profile?.monthly_salary ?? 0;
 
   const expenses = useMemo(() => {
-    if (!range.from || !range.to) return applyRecurringToggle(rawExpenses, includeRec);
-    return filterByView(applyRecurringToggle(rawExpenses, includeRec), cards, view, range.from, range.to);
-  }, [rawExpenses, cards, view, includeRec, range.from, range.to]);
-  const trendExpenses = useMemo(() => applyRecurringToggle(rawTrendExpenses, includeRec), [rawTrendExpenses, includeRec]);
+    const filtered = applyInvestmentToggle(applyRecurringToggle(rawExpenses, includeRec), categories, includeInv);
+    if (!range.from || !range.to) return filtered;
+    return filterByView(filtered, cards, view, range.from, range.to);
+  }, [rawExpenses, cards, categories, view, includeRec, includeInv, range.from, range.to]);
+  const trendExpenses = useMemo(() => applyInvestmentToggle(applyRecurringToggle(rawTrendExpenses, includeRec), categories, includeInv), [rawTrendExpenses, categories, includeRec, includeInv]);
 
   const includedExpenses = useMemo(
     () => expenses.filter((e) => !excludedCats.has(e.category_id)),
