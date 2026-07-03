@@ -50,6 +50,7 @@ function ProgressPage() {
   const [period, setPeriod] = useState<Period>("month");
   const [view] = useSpendView();
   const [includeRec] = useIncludeRecurring();
+  const [includeInv] = useIncludeInvestments();
 
   // Wide pull so payable-mode card bills bucket correctly
   const { data: rawExpenses = [] } = useExpenses(user?.id, {
