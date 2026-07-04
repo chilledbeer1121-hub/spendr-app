@@ -16,7 +16,7 @@ import {
 } from "@/lib/payable";
 import {
   startOfMonth, endOfMonth, subMonths, addMonths, eachDayOfInterval,
-  format, parseISO, getDay, isSameMonth, isToday,
+  format, parseISO, getDay, isSameMonth, isToday, isAfter,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -141,7 +141,8 @@ function CalendarPage() {
 
                     // Relative heat: 0 -> green, max -> red (HSL 140 → 0)
                     let bg: string | undefined;
-                    if (inMonth) {
+                    const isFuture = isAfter(d, new Date());
+                    if (inMonth && !isFuture) {
                       const ratio = maxDay > 0 ? total / maxDay : 0;
                       const hue = 140 - ratio * 140;
                       const sat = total === 0 ? 45 : 70;
