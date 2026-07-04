@@ -16,7 +16,7 @@ import {
 } from "@/lib/payable";
 import {
   startOfMonth, endOfMonth, subMonths, addMonths, eachDayOfInterval,
-  format, parseISO, getDay, isSameMonth, isToday,
+  format, parseISO, getDay, isSameMonth, isToday, isAfter,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
