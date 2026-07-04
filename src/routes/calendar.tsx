@@ -136,25 +136,35 @@ function CalendarPage() {
                     const key = format(d, "yyyy-MM-dd");
                     const bucket = perDay.get(key);
                     const total = bucket?.total ?? 0;
-                    const intensity = maxDay > 0 ? total / maxDay : 0;
                     const inMonth = isSameMonth(d, anchor);
                     const today = isToday(d);
+
+                    // Relative heat: 0 -> green, max -> red (HSL 140 → 0)
+                    let bg: string | undefined;
+                    if (inMonth) {
+                      const ratio = maxDay > 0 ? total / maxDay : 0;
+                      const hue = 140 - ratio * 140;
+                      const sat = total === 0 ? 45 : 70;
+                      const light = total === 0 ? 88 : 88 - ratio * 25;
+                      bg = `hsl(${hue.toFixed(0)} ${sat}% ${light.toFixed(0)}%)`;
+                    }
+
                     return (
                       <button
                         key={di}
                         onClick={() => total > 0 && setDayOpen(key)}
                         className={cn(
                           "group aspect-square rounded-lg border p-1.5 md:p-2 text-left transition-all flex flex-col justify-between",
-                          inMonth ? "border-border" : "border-transparent opacity-40",
+                          inMonth ? "border-border/60" : "border-transparent opacity-40",
                           today ? "ring-2 ring-primary" : "",
-                          total > 0 ? "hover:border-primary/50 cursor-pointer" : "cursor-default",
+                          total > 0 ? "hover:brightness-95 cursor-pointer" : "cursor-default",
                         )}
-                        style={total > 0 ? { background: `color-mix(in oklab, hsl(var(--primary)) ${Math.max(8, intensity * 55).toFixed(0)}%, hsl(var(--card)))` } : undefined}
+                        style={inMonth ? { background: bg } : undefined}
                         title={total > 0 ? `${format(d, "MMM d")} · ${formatCurrency(total, currency)}` : format(d, "MMM d")}
                       >
-                        <div className="text-[10px] md:text-xs font-semibold">{format(d, "d")}</div>
+                        <div className="text-[10px] md:text-xs font-bold text-neutral-900">{format(d, "d")}</div>
                         {total > 0 && (
-                          <div className="text-[9px] md:text-[11px] font-semibold tabular-nums truncate">
+                          <div className="text-[9px] md:text-[11px] font-bold tabular-nums truncate text-neutral-900">
                             {formatCurrency(total, currency)}
                           </div>
                         )}
