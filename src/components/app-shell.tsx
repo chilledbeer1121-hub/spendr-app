@@ -11,7 +11,7 @@ import {
   MoreHorizontal, Repeat, BookHeart, PiggyBank, CreditCard as CreditCardIcon,
   PanelLeftClose, PanelLeftOpen, Network, Gauge, TrendingUp, Target, CalendarDays,
 } from "lucide-react";
-import { DailyGoalReminder } from "@/components/daily-goal-reminder";
+
 
 const primaryNav = [
   { to: "/", label: "Home", icon: LayoutDashboard },
@@ -220,7 +220,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Sheet>
           </div>
         </nav>
-        <DailyGoalReminder />
+        
       </div>
     </TooltipProvider>
   );
