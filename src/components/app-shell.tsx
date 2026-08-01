@@ -22,6 +22,7 @@ const primaryNav = [
 
 const moreNav = [
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
+  { to: "/cheat-meals", label: "Cheat meals", icon: Utensils },
   { to: "/progress", label: "Progress", icon: Gauge },
   { to: "/goals", label: "Goals", icon: Target },
   { to: "/visualization", label: "Visualization", icon: Network },
