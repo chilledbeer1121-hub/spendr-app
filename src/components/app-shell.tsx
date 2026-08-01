@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Plus, ListOrdered, BarChart3, Lightbulb, Wallet, Settings, LogOut,
   MoreHorizontal, Repeat, BookHeart, PiggyBank, CreditCard as CreditCardIcon,
-  PanelLeftClose, PanelLeftOpen, Network, Gauge, TrendingUp, Target, CalendarDays,
+  PanelLeftClose, PanelLeftOpen, Network, Gauge, TrendingUp, Target, CalendarDays, Utensils,
 } from "lucide-react";
 
 
@@ -22,6 +22,7 @@ const primaryNav = [
 
 const moreNav = [
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
+  { to: "/cheat-meals", label: "Cheat meals", icon: Utensils },
   { to: "/progress", label: "Progress", icon: Gauge },
   { to: "/goals", label: "Goals", icon: Target },
   { to: "/visualization", label: "Visualization", icon: Network },

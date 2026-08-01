@@ -22,6 +22,7 @@ import { Route as InvestingRouteImport } from './routes/investing'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as GoalsRouteImport } from './routes/goals'
 import { Route as ExpensesRouteImport } from './routes/expenses'
+import { Route as CheatMealsRouteImport } from './routes/cheat-meals'
 import { Route as CardsRouteImport } from './routes/cards'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AddRouteImport } from './routes/add'
@@ -92,6 +93,11 @@ const ExpensesRoute = ExpensesRouteImport.update({
   path: '/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheatMealsRoute = CheatMealsRouteImport.update({
+  id: '/cheat-meals',
+  path: '/cheat-meals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CardsRoute = CardsRouteImport.update({
   id: '/cards',
   path: '/cards',
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/add': typeof AddRoute
   '/calendar': typeof CalendarRoute
   '/cards': typeof CardsRoute
+  '/cheat-meals': typeof CheatMealsRoute
   '/expenses': typeof ExpensesRoute
   '/goals': typeof GoalsRoute
   '/insights': typeof InsightsRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/add': typeof AddRoute
   '/calendar': typeof CalendarRoute
   '/cards': typeof CardsRoute
+  '/cheat-meals': typeof CheatMealsRoute
   '/expenses': typeof ExpensesRoute
   '/goals': typeof GoalsRoute
   '/insights': typeof InsightsRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/add': typeof AddRoute
   '/calendar': typeof CalendarRoute
   '/cards': typeof CardsRoute
+  '/cheat-meals': typeof CheatMealsRoute
   '/expenses': typeof ExpensesRoute
   '/goals': typeof GoalsRoute
   '/insights': typeof InsightsRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/add'
     | '/calendar'
     | '/cards'
+    | '/cheat-meals'
     | '/expenses'
     | '/goals'
     | '/insights'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/add'
     | '/calendar'
     | '/cards'
+    | '/cheat-meals'
     | '/expenses'
     | '/goals'
     | '/insights'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/add'
     | '/calendar'
     | '/cards'
+    | '/cheat-meals'
     | '/expenses'
     | '/goals'
     | '/insights'
@@ -236,6 +248,7 @@ export interface RootRouteChildren {
   AddRoute: typeof AddRoute
   CalendarRoute: typeof CalendarRoute
   CardsRoute: typeof CardsRoute
+  CheatMealsRoute: typeof CheatMealsRoute
   ExpensesRoute: typeof ExpensesRoute
   GoalsRoute: typeof GoalsRoute
   InsightsRoute: typeof InsightsRoute
@@ -344,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cheat-meals': {
+      id: '/cheat-meals'
+      path: '/cheat-meals'
+      fullPath: '/cheat-meals'
+      preLoaderRoute: typeof CheatMealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cards': {
       id: '/cards'
       path: '/cards'
@@ -380,6 +400,7 @@ const rootRouteChildren: RootRouteChildren = {
   AddRoute: AddRoute,
   CalendarRoute: CalendarRoute,
   CardsRoute: CardsRoute,
+  CheatMealsRoute: CheatMealsRoute,
   ExpensesRoute: ExpensesRoute,
   GoalsRoute: GoalsRoute,
   InsightsRoute: InsightsRoute,
