@@ -327,7 +327,7 @@ function Heatmap({ meals, budget }: { meals: Meal[]; budget: number }) {
     const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     if (d.getTime() > t.getTime()) return "bg-transparent";
     const k = byDay.get(localKey(d)) ?? 0;
-    if (k === 0) return "bg-stone-150 bg-stone-200/60 dark:bg-stone-800/60";
+    if (k === 0) return "bg-stone-200/60 dark:bg-stone-800/60";
     if (k <= 350) return "bg-stone-400 dark:bg-stone-600";
     if (k <= 700) return "bg-stone-600 dark:bg-stone-400";
     return "bg-stone-900 dark:bg-stone-100";
